@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Διαχείριση Κρατήσεων Ξενοδοχείου</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f4f0;color:#1a1a1a;font-size:14px;}
+.app{max-width:960px;margin:0 auto;padding:1.5rem 1rem;}
+h1{font-size:20px;font-weight:600;margin-bottom:1.25rem;}
+.cal-nav{display:flex;align-items:center;gap:10px;margin-bottom:.75rem;}
+.cal-nav button{border:1px solid #d0cec7;background:#fff;color:#1a1a1a;border-radius:8px;padding:5px 13px;cursor:pointer;font-size:14px;}
+.cal-nav button:hover{background:#f0efe9;}
+.month-label{font-size:15px;font-weight:500;min-width:160px;text-align:center;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:1.25rem;}
+.cal-day-name{text-align:center;font-size:11px;color:#888;padding:4px 0;font-weight:500;}
+.cal-day{border:1px solid #e0ddd5;border-radius:8px;padding:4px 5px;min-height:54px;cursor:pointer;background:#fff;transition:border-color .12s;}
+.cal-day:hover{border-color:#aaa;}
+.cal-day.empty{background:transparent;border-color:transparent;cursor:default;}
+.cal-day.selected{border:2px solid #185FA5;background:#e8f1fb;}
+.cal-day.today .day-num{color:#185FA5;font-weight:600;}
+.day-num{font-size:12px;}
+.day-dots{display:flex;gap:2px;flex-wrap:wrap;margin-top:2px;}
+.dot{width:6px;height:6px;border-radius:50%;}
+.day-bar{height:3px;border-radius:2px;background:#e8e6e0;margin-top:3px;overflow:hidden;}
+.day-fill{height:100%;border-radius:2px;background:#185FA5;}
+.day-fill.high{background:#a32d2d;}
+.tabs-row{display:flex;gap:6px;margin-bottom:1rem;}
+.main-tab{font-size:13px;padding:5px 16px;border-radius:8px;border:1px solid #d0cec7;background:#fff;color:#666;cursor:pointer;}
+.main-tab.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a;}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem;}
+.stat{background:#f0efe9;border-radius:8px;padding:6px 14px;font-size:13px;color:#666;}
+.stat span{font-weight:600;color:#1a1a1a;}
+.date-label{font-size:14px;font-weight:600;margin-bottom:.75rem;}
+.panel{background:#f0efe9;border-radius:12px;padding:1rem;margin-bottom:1rem;}
+.panel-title{font-size:13px;font-weight:500;color:#666;margin-bottom:.6rem;}
+.mode-toggle{display:flex;margin-bottom:.75rem;border:1px solid #d0cec7;border-radius:8px;overflow:hidden;width:fit-content;}
+.mode-btn{font-size:13px;padding:5px 16px;border:none;background:#fff;color:#666;cursor:pointer;}
+.mode-btn.active{background:#f0efe9;color:#1a1a1a;font-weight:500;}
+.form-row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;}
+.form-group{display:flex;flex-direction:column;gap:4px;flex:1;min-width:110px;}
+.form-group label{font-size:12px;color:#666;}
+.form-group input,.form-group select{font-size:13px;padding:6px 9px;border-radius:8px;border:1px solid #d0cec7;background:#fff;color:#1a1a1a;outline:none;}
+.form-group input:focus,.form-group select:focus{border-color:#185FA5;}
+.form-group input[type=number]{width:80px;}
+.form-group input:disabled{background:#f0efe9;color:#aaa;cursor:not-allowed;}
+.btn{font-size:13px;padding:6px 16px;border-radius:8px;border:1px solid #d0cec7;background:#fff;color:#1a1a1a;cursor:pointer;white-space:nowrap;}
+.btn:hover{background:#f0efe9;}
+.btn.primary{background:#185FA5;color:#fff;border-color:#185FA5;}
+.btn.primary:hover{background:#0c447c;}
+.btn.danger{color:#a32d2d;border-color:#f09595;font-size:12px;padding:4px 10px;}
+.btn.danger:hover{background:#fce8e8;}
+.btn.warning{color:#6b4c00;border-color:#d4a017;font-size:12px;padding:4px 10px;background:#fffbea;}
+.btn.warning:hover{background:#fff0b3;}
+.members-table{width:100%;margin-top:.6rem;border-collapse:collapse;}
+.members-table th{font-size:11px;color:#888;font-weight:500;text-align:left;padding:4px 6px 4px 0;border-bottom:1px solid #e0ddd5;}
+.members-table td{padding:4px 6px 4px 0;vertical-align:middle;}
+.members-table input{width:100%;font-size:13px;padding:4px 7px;border-radius:6px;border:1px solid #d0cec7;background:#fff;}
+.members-table input[type=time]{width:96px;}
+.mem-num{font-size:12px;color:#888;white-space:nowrap;}
+.filter-tabs{display:flex;gap:6px;margin-bottom:.75rem;flex-wrap:wrap;}
+.ftab{font-size:13px;padding:4px 13px;border-radius:8px;border:1px solid #d0cec7;background:#fff;color:#666;cursor:pointer;}
+.ftab.active{background:#f0efe9;color:#1a1a1a;font-weight:500;border-color:#aaa;}
+.search-row{margin-bottom:.75rem;}
+.search-row input{width:100%;font-size:13px;padding:7px 11px;border-radius:8px;border:1px solid #d0cec7;background:#fff;outline:none;}
+.search-row input:focus{border-color:#185FA5;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:8px;}
+.room-card{background:#fff;border:1px solid #e0ddd5;border-radius:12px;padding:10px 12px;cursor:pointer;transition:border-color .12s,box-shadow .12s;}
+.room-card:hover{border-color:#aaa;box-shadow:0 2px 8px rgba(0,0,0,.07);}
+.room-card.open{border:2px solid #185FA5;}
+.room-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;}
+.room-num{font-size:14px;font-weight:600;}
+.room-type{font-size:11px;color:#888;margin-top:1px;}
+.badge{font-size:11px;padding:2px 7px;border-radius:6px;font-weight:500;}
+.badge.full{background:#fce8e8;color:#a32d2d;}
+.badge.avail{background:#eaf3de;color:#3b6d11;}
+.badge.partial{background:#faeeda;color:#854f0b;}
+.badge.grp{background:#eeedfe;color:#534ab7;}
+.indef-pill{display:inline-block;font-size:10px;padding:1px 5px;border-radius:8px;background:#fff3cd;color:#856404;border:1px solid #e5b100;font-weight:500;}
+.beds{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:6px;}
+.bed{width:16px;height:12px;border-radius:2px;border:1px solid #d0cec7;background:#f0efe9;}
+.bed.occ{border-color:transparent;}
+.bed.indef-bed{background:repeating-linear-gradient(45deg,#e5b100,#e5b100 3px,#fffbea 3px,#fffbea 6px);border:1px solid #e5b100;}
+.gi{display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-top:1px solid #e8e6e0;gap:4px;flex-wrap:wrap;}
+.gn{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;}
+.gt{font-size:10px;color:#666;white-space:nowrap;}
+.gtag{font-size:10px;padding:1px 5px;border-radius:3px;font-weight:500;white-space:nowrap;}
+.no-guests{font-size:11px;color:#aaa;font-style:italic;}
+.cap-bar{height:3px;border-radius:2px;background:#e8e6e0;margin-top:6px;overflow:hidden;}
+.cap-fill{height:100%;border-radius:2px;background:#185FA5;}
+.cap-fill.full{background:#a32d2d;}
+.cap-fill.indef{background:#e5b100;}
+.empty-msg{text-align:center;color:#888;font-size:14px;padding:2rem;grid-column:1/-1;}
+.detail-panel{background:#fff;border:1px solid #ccc;border-radius:12px;margin-bottom:1rem;overflow:hidden;}
+.dp-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #e0ddd5;background:#f5f4f0;}
+.dp-title{font-size:15px;font-weight:600;}
+.dp-sub{font-size:12px;color:#888;margin-top:1px;}
+.close-btn{font-size:20px;color:#888;cursor:pointer;border:none;background:none;padding:0 4px;line-height:1;}
+.close-btn:hover{color:#1a1a1a;}
+.dp-body{padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:520px){.dp-body{grid-template-columns:1fr;}}
+.dp-sec-title{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;}
+.avail-big{font-size:36px;font-weight:600;line-height:1;}
+.avail-of{font-size:13px;color:#888;margin-top:2px;margin-bottom:10px;}
+.bed-big-row{display:flex;gap:5px;flex-wrap:wrap;}
+.bed-big{width:36px;height:28px;border-radius:5px;border:1px solid #d0cec7;background:#f0efe9;display:flex;align-items:center;justify-content:center;}
+.bed-big.occ{border-color:transparent;}
+.bed-big.indef-big{border:2px solid #e5b100;background:#fffbea;}
+.bed-big-lbl{font-size:8px;color:#888;text-align:center;line-height:1.2;padding:2px;}
+.bed-big.occ .bed-big-lbl{color:rgba(255,255,255,.9);}
+.bed-big.indef-big .bed-big-lbl{color:#856404;}
+.timeline{display:flex;flex-direction:column;gap:6px;}
+.tl-item{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:8px;background:#f5f4f0;}
+.tl-item.indef-tl{background:#fffbea;border-left:3px solid #e5b100;}
+.tl-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.tl-name{font-size:12px;font-weight:500;}
+.tl-sub{font-size:11px;color:#888;}
+.tl-time{font-size:11px;color:#185FA5;font-weight:500;margin-top:2px;}
+.tl-empty{font-size:12px;color:#aaa;font-style:italic;}
+.single-dep{display:flex;align-items:center;gap:8px;margin-top:.5rem;flex-wrap:wrap;}
+.single-dep label{font-size:12px;color:#666;white-space:nowrap;}
+.single-dep input{font-size:13px;padding:5px 8px;border-radius:8px;border:1px solid #d0cec7;background:#fff;}
+.indef-check{display:flex;align-items:center;gap:7px;margin-top:.5rem;font-size:13px;color:#555;cursor:pointer;user-select:none;}
+.indef-check input[type=checkbox]{width:15px;height:15px;cursor:pointer;accent-color:#e5b100;}
+.booking-card{background:#fff;border:1px solid #e0ddd5;border-radius:12px;padding:10px 12px;margin-bottom:8px;}
+.booking-card.indef-card{border-left:4px solid #e5b100;}
+.bc-header{display:flex;align-items:flex-start;gap:8px;margin-bottom:6px;}
+.bc-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.bc-title{flex:1;}
+.bc-name{font-size:14px;font-weight:600;}
+.bc-meta{font-size:12px;color:#888;margin-top:1px;}
+.bc-members{display:flex;flex-direction:column;gap:2px;border-top:1px solid #e8e6e0;padding-top:6px;}
+.bc-member{font-size:12px;color:#888;padding:2px 0;display:flex;justify-content:space-between;align-items:center;gap:4px;}
+.bc-member span{color:#1a1a1a;}
+.dep-time{font-size:11px;color:#185FA5;font-weight:500;}
+.bc-actions{display:flex;gap:6px;flex-shrink:0;}
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:center;justify-content:center;padding:1rem;}
+.modal{background:#fff;border-radius:14px;padding:1.5rem;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.18);}
+.modal h2{font-size:16px;font-weight:600;margin-bottom:1rem;color:#1a1a1a;}
+.modal-field{display:flex;flex-direction:column;gap:4px;margin-bottom:.75rem;}
+.modal-field label{font-size:12px;color:#666;}
+.modal-field input,.modal-field select{font-size:13px;padding:7px 10px;border-radius:8px;border:1px solid #d0cec7;background:#fff;outline:none;}
+.modal-field input:focus{border-color:#185FA5;}
+.modal-field input:disabled{background:#f0efe9;color:#aaa;cursor:not-allowed;}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:1rem;flex-wrap:wrap;}
+.modal-sep{border:none;border-top:1px solid #e8e6e0;margin:.75rem 0;}
+.member-edit-row{display:flex;gap:8px;align-items:center;padding:.4rem 0;border-bottom:1px solid #f0efe9;}
+.member-edit-row:last-child{border-bottom:none;}
+.member-edit-num{font-size:12px;color:#888;min-width:22px;}
+.member-edit-row input{flex:1;font-size:13px;padding:5px 8px;border-radius:6px;border:1px solid #d0cec7;background:#fff;outline:none;}
+.member-edit-row input[type=time]{max-width:105px;flex:none;}
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:#185FA5;color:#fff;padding:9px 18px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:300;}
+.toast.show{opacity:1;}
+.no-day-msg{text-align:center;color:#888;font-size:14px;padding:2rem;}
+</style>
+</head>
+<body>
+<div class="app">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:8px;">
+  <h1 style="margin-bottom:0;">🏨 Διαχείριση Κρατήσεων</h1>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <span id="save-indicator" style="font-size:12px;transition:color .3s;min-width:120px;text-align:right;"></span>
+    <button class="btn" style="font-size:12px;padding:4px 10px;color:#a32d2d;border-color:#f09595;" onclick="clearData()" title="Διαγραφή όλων των κρατήσεων">🗑 Εκκαθάριση</button>
+  </div>
+</div>
+<div class="cal-nav">
+  <button onclick="CM(-1)">‹</button>
+  <div class="month-label" id="ml"></div>
+  <button onclick="CM(1)">›</button>
+</div>
+<div class="cal-grid" id="cg"></div>
+<div class="tabs-row">
+  <div class="main-tab active" id="tab-r" onclick="ST('r')">Δωμάτια</div>
+  <div class="main-tab" id="tab-b" onclick="ST('b')">Κρατήσεις</div>
+</div>
+<div id="vr">
+  <div class="no-day-msg" id="nd">Επίλεξε μια ημέρα από το ημερολόγιο</div>
+  <div id="ds" style="display:none;">
+    <div class="date-label" id="dl"></div>
+    <div class="stats">
+      <div class="stat">Κρεβάτια: <span id="st">0</span></div>
+      <div class="stat">Κατειλημμένα: <span id="so">0</span></div>
+      <div class="stat">Ελεύθερα: <span id="sf">0</span></div>
+    </div>
+    <div class="panel">
+      <div class="mode-toggle">
+        <button class="mode-btn active" id="ms" onclick="SM('s')">Μεμονωμένος</button>
+        <button class="mode-btn" id="mg" onclick="SM('g')">Γκρουπ</button>
+      </div>
+      <div id="fs">
+        <div class="panel-title">Νέα κράτηση</div>
+        <div class="form-row">
+          <div class="form-group"><label>Όνομα πελάτη</label><input type="text" id="gn" placeholder="Παπαδόπουλος" /></div>
+          <div class="form-group"><label>Δωμάτιο</label><select id="rs"><option value="">— Επιλογή —</option></select></div>
+          <div class="form-group"><label>Check-in</label><input type="date" id="ci" onchange="URS()" /></div>
+          <div class="form-group"><label>Check-out</label><input type="date" id="co" onchange="URS()" /></div>
+        </div>
+        <label class="indef-check"><input type="checkbox" id="indef-s" onchange="TI('s')"> Αόριστη αναχώρηση ∞</label>
+        <div class="single-dep"><label>Ώρα αναχώρησης (προαιρ.):</label><input type="time" id="dt" /></div>
+        <div style="margin-top:.75rem;"><button class="btn primary" onclick="ABS()">Κράτηση ↗</button></div>
+      </div>
+      <div id="fg" style="display:none;">
+        <div class="panel-title">Νέα κράτηση γκρουπ</div>
+        <div class="form-row">
+          <div class="form-group"><label>Όνομα γκρουπ</label><input type="text" id="ggn" placeholder="π.χ. ΜΕΑ" /></div>
+          <div class="form-group"><label>Άτομα</label><input type="number" id="gc" min="1" max="30" value="2" onchange="RMT('gmt','gc')" oninput="RMT('gmt','gc')" /></div>
+          <div class="form-group"><label>Δωμάτιο</label><select id="grs"><option value="">— Επιλογή —</option></select></div>
+          <div class="form-group"><label>Check-in</label><input type="date" id="gci" onchange="UGRS()" /></div>
+          <div class="form-group"><label>Check-out</label><input type="date" id="gco" onchange="UGRS()" /></div>
+        </div>
+        <label class="indef-check"><input type="checkbox" id="indef-g" onchange="TI('g')"> Αόριστη αναχώρηση ∞</label>
+        <div id="gmt" style="margin-top:.6rem;overflow-x:auto;"></div>
+        <div style="margin-top:.75rem;"><button class="btn primary" onclick="ABG()">Κράτηση γκρουπ ↗</button></div>
+      </div>
+    </div>
+    <div class="detail-panel" id="dp" style="display:none;">
+      <div class="dp-header">
+        <div><div class="dp-title" id="dp-t">—</div><div class="dp-sub" id="dp-s"></div></div>
+        <button class="close-btn" onclick="CDR()">✕</button>
+      </div>
+      <div class="dp-body">
+        <div>
+          <div class="dp-sec-title">Διαθεσιμότητα</div>
+          <div class="avail-big" id="dp-free">0</div>
+          <div class="avail-of" id="dp-of"></div>
+          <div class="bed-big-row" id="dp-beds"></div>
+        </div>
+        <div>
+          <div id="dp-cur-sec">
+            <div class="dp-sec-title">Τρέχοντες πελάτες</div>
+            <div class="timeline" id="dp-cur"></div>
+          </div>
+          <div id="dp-up-sec" style="margin-top:12px;display:none;">
+            <div class="dp-sec-title">Επόμενες κρατήσεις (30 ημ.)</div>
+            <div class="timeline" id="dp-up"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="filter-tabs">
+      <div class="ftab active" onclick="SF('all',this)">Όλα</div>
+      <div class="ftab" onclick="SF('avail',this)">Διαθέσιμα</div>
+      <div class="ftab" onclick="SF('partial',this)">Μερικώς</div>
+      <div class="ftab" onclick="SF('full',this)">Πλήρη</div>
+    </div>
+    <div class="search-row"><input type="text" id="sr" placeholder="Αναζήτηση δωματίου ή πελάτη..." oninput="RG()" /></div>
+    <div class="grid" id="rg"></div>
+  </div>
+</div>
+<div id="vb" style="display:none;">
+  <div class="panel">
+    <div class="panel-title">Νέα κράτηση</div>
+    <div class="mode-toggle" style="margin-bottom:.75rem;">
+      <button class="mode-btn active" id="bms" onclick="SBM('s')">Μεμονωμένος</button>
+      <button class="mode-btn" id="bmg" onclick="SBM('g')">Γκρουπ</button>
+    </div>
+    <div id="bfs">
+      <div class="form-row">
+        <div class="form-group"><label>Όνομα</label><input type="text" id="bgn" placeholder="Όνομα" /></div>
+        <div class="form-group"><label>Δωμάτιο</label><select id="brs"><option value="">—</option></select></div>
+        <div class="form-group"><label>Check-in</label><input type="date" id="bci" onchange="UBRS()" /></div>
+        <div class="form-group"><label>Check-out</label><input type="date" id="bco" onchange="UBRS()" /></div>
+      </div>
+      <label class="indef-check"><input type="checkbox" id="indef-bs" onchange="TI('bs')"> Αόριστη αναχώρηση ∞</label>
+      <div class="single-dep"><label>Ώρα αναχώρησης (προαιρ.):</label><input type="time" id="bdt" /></div>
+      <div style="margin-top:.75rem;"><button class="btn primary" onclick="ABD()">Κράτηση ↗</button></div>
+    </div>
+    <div id="bfg" style="display:none;">
+      <div class="form-row">
+        <div class="form-group"><label>Όνομα γκρουπ</label><input type="text" id="bggn" placeholder="π.χ. ΜΕΑ" /></div>
+        <div class="form-group"><label>Άτομα</label><input type="number" id="bgc" min="1" max="30" value="2" onchange="RMT('bgmt','bgc')" oninput="RMT('bgmt','bgc')" /></div>
+        <div class="form-group"><label>Δωμάτιο</label><select id="bgrs"><option value="">—</option></select></div>
+        <div class="form-group"><label>Check-in</label><input type="date" id="bgci" onchange="UBGRS()" /></div>
+        <div class="form-group"><label>Check-out</label><input type="date" id="bgco" onchange="UBGRS()" /></div>
+      </div>
+      <label class="indef-check"><input type="checkbox" id="indef-bg" onchange="TI('bg')"> Αόριστη αναχώρηση ∞</label>
+      <div id="bgmt" style="margin-top:.6rem;overflow-x:auto;"></div>
+      <div style="margin-top:.75rem;"><button class="btn primary" onclick="ABGD()">Κράτηση γκρουπ ↗</button></div>
+    </div>
+  </div>
+  <div class="search-row"><input type="text" id="bsr" placeholder="Αναζήτηση κράτησης..." oninput="RB()" /></div>
+  <div id="bl"></div>
+</div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="edit-modal" style="display:none;">
+  <div class="modal">
+    <h2 id="modal-title">Επεξεργασία κράτησης</h2>
+    <div class="modal-field"><label>Όνομα / Γκρουπ</label><input type="text" id="e-name" /></div>
+    <div class="modal-field"><label>Δωμάτιο</label><select id="e-room"></select></div>
+    <div class="modal-field"><label>Check-in</label><input type="date" id="e-ci" /></div>
+    <div class="modal-field"><label>Check-out</label><input type="date" id="e-co" /></div>
+    <label class="indef-check" style="margin-bottom:.6rem;"><input type="checkbox" id="e-indef" onchange="TEI()"> Αόριστη αναχώρηση ∞</label>
+    <div id="e-members-sec"></div>
+    <hr class="modal-sep">
+    <div class="modal-actions">
+      <button class="btn danger" onclick="delFromModal()">Διαγραφή</button>
+      <button class="btn" onclick="closeModal()">Ακύρωση</button>
+      <button class="btn primary" onclick="saveEdit()">Αποθήκευση ✓</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const ROOMS=[{id:'11',beds:2,type:'XX'},{id:'12',beds:2,type:'XX'},{id:'13',beds:4,type:'K+XX'},{id:'14',beds:2,type:'XX'},{id:'15',beds:2,type:'XX'},{id:'21',beds:3,type:'K+X'},{id:'22',beds:4,type:'XXXX'},{id:'23',beds:2,type:'**XX'},{id:'24',beds:2,type:'XX'},{id:'25',beds:3,type:'1K+X'},{id:'31',beds:3,type:'K+X'},{id:'32',beds:4,type:'XXX'},{id:'33',beds:2,type:'**XX'},{id:'34',beds:2,type:'XX'},{id:'35',beds:3,type:'1K+X'},{id:'41',beds:2,type:'XX'},{id:'42',beds:4,type:'K+XX'},{id:'43',beds:2,type:'**XX'},{id:'44',beds:2,type:'XX'},{id:'45',beds:1,type:'X'},{id:'51',beds:2,type:'XX'},{id:'52',beds:5,type:'1K+XΔ'},{id:'53',beds:1,type:'X'},{id:'54',beds:2,type:'XX'},{id:'55',beds:1,type:'HM'},{id:'61',beds:2,type:'XX'},{id:'62',beds:6,type:'2K+Δ'},{id:'64',beds:6,type:'2K+XX'},{id:'65',beds:1,type:'X'},{id:'71',beds:2,type:'XX'},{id:'72',beds:6,type:'2K+Δ'},{id:'74',beds:6,type:'2K+XX'},{id:'75',beds:1,type:'HM'},{id:'81',beds:2,type:'Δ'},{id:'82',beds:3,type:'1K+X'},{id:'84',beds:3,type:'1K+X'},{id:'85',beds:1,type:'HM'}];
+const LBL={'X':'Μονό','XX':'Δίκλινο','K':'Κουκέτα','Δ':'Διπλό','HM':'Ημίδιπλο','**XX':'Δίκλινο sp.','K+X':'Κουκ.+Μονό','1K+X':'Κουκ.+Μονό','K+XX':'Κουκ.+Δίκλινο','2K+Δ':'2 Κουκ.+Διπλό','2K+XX':'2 Κουκ.+Δίκλινο','1K+XΔ':'Κουκ.+Μονό+Διπλό','XXXX':'4 Μονά','XXX':'3 Μονά'};
+const MNS=['Ιανουάριος','Φεβρουάριος','Μάρτιος','Απρίλιος','Μάιος','Ιούνιος','Ιούλιος','Αύγουστος','Σεπτέμβριος','Οκτώβριος','Νοέμβριος','Δεκέμβριος'];
+const MSX=['Ιαν','Φεβ','Μάρ','Απρ','Μάι','Ιούν','Ιούλ','Αύγ','Σεπ','Οκτ','Νοε','Δεκ'];
+const DYS=['Δευ','Τρί','Τετ','Πέμ','Παρ','Σάβ','Κυρ'];
+const CLRS=['#185FA5','#0F6E56','#993C1D','#993556','#534AB7','#3B6D11','#854F0B','#A32D2D','#0C447C','#2D6B4F'];
+let BKS=[],bid=1,vY,vM,selD=null,flt='all',openRid=null,editId=null;
+const TD=new Date();vY=TD.getFullYear();vM=TD.getMonth();
+
+function dk(d){return d instanceof Date?d.toISOString().slice(0,10):d;}
+function aD(s,n){const d=new Date(s);d.setDate(d.getDate()+n);return dk(d);}
+function fd(s){if(!s)return'';const p=s.split('-');return`${+p[2]} ${MSX[+p[1]-1]}`;}
+function tds(){return dk(TD);}
+function tB(){return ROOMS.reduce((s,r)=>s+r.beds,0);}
+// A booking is active on 'date' if ci<=date AND (no co, i.e. indefinite, OR co>date)
+function bAct(b,date){return b.ci<=date&&(!b.co||b.co>date);}
+function bOD(date){return BKS.filter(b=>bAct(b,date));}
+function oOD(date,rid){return bOD(date).filter(b=>b.roomId===rid).reduce((s,b)=>s+b.count,0);}
+function rSt(date,rid){const r=ROOMS.find(r=>r.id===rid);const o=oOD(date,rid);return o===0?'avail':o>=r.beds?'full':'partial';}
+function tOD(date){return ROOMS.reduce((s,r)=>s+oOD(date,r.id),0);}
+
+// Toggle indefinite checkout fields
+function TI(pfx){
+  const map={s:['co','indef-s'],g:['gco','indef-g'],bs:['bco','indef-bs'],bg:['bgco','indef-bg']};
+  const[coId,cbId]=map[pfx];
+  const cb=document.getElementById(cbId);
+  const el=document.getElementById(coId);
+  el.disabled=cb.checked;
+  if(cb.checked)el.value='';
+  if(pfx==='s')URS();else if(pfx==='g')UGRS();else if(pfx==='bs')UBRS();else UBGRS();
+}
+function TEI(){
+  const cb=document.getElementById('e-indef');
+  const el=document.getElementById('e-co');
+  el.disabled=cb.checked;
+  if(cb.checked)el.value='';
+}
+
+function CM(d){vM+=d;if(vM>11){vM=0;vY++;}if(vM<0){vM=11;vY--;}RC();}
+function RC(){
+  document.getElementById('ml').textContent=MNS[vM]+' '+vY;
+  const g=document.getElementById('cg');g.innerHTML='';
+  DYS.forEach(d=>{const e=document.createElement('div');e.className='cal-day-name';e.textContent=d;g.appendChild(e);});
+  const off=(new Date(vY,vM,1).getDay()+6)%7;
+  const days=new Date(vY,vM+1,0).getDate();
+  for(let i=0;i<off;i++){const e=document.createElement('div');e.className='cal-day empty';g.appendChild(e);}
+  for(let d=1;d<=days;d++){
+    const k=`${vY}-${String(vM+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const pct=Math.round(tOD(k)/tB()*100);
+    const el=document.createElement('div');
+    el.className='cal-day'+(selD===k?' selected':'');
+    if(tds()===k)el.classList.add('today');
+    const bks=bOD(k).slice(0,5);
+    el.innerHTML=`<div class="day-num">${d}</div><div class="day-dots">${bks.map(b=>`<div class="dot" style="background:${b.co?b.color:'#e5b100'}"></div>`).join('')}</div><div class="day-bar"><div class="day-fill${pct>80?' high':''}" style="width:${pct}%"></div></div>`;
+    el.onclick=()=>SD(k,d);g.appendChild(el);
+  }
+}
+function SD(k,d){
+  selD=k;flt='all';openRid=null;
+  document.querySelectorAll('.ftab').forEach((t,i)=>t.classList.toggle('active',i===0));
+  document.getElementById('ds').style.display='block';
+  document.getElementById('nd').style.display='none';
+  document.getElementById('dp').style.display='none';
+  const p=k.split('-');
+  document.getElementById('dl').textContent=`${+p[2]} ${MSX[+p[1]-1]} ${p[0]}`;
+  document.getElementById('ci').value=k;document.getElementById('co').value=aD(k,1);
+  document.getElementById('gci').value=k;document.getElementById('gco').value=aD(k,1);
+  RG();US();URS();UGRS();RC();
+}
+
+// Room detail panel
+function ODR(rid){
+  if(openRid===rid){CDR();return;}
+  openRid=rid;
+  const room=ROOMS.find(r=>r.id===rid);
+  const date=selD||tds();
+  const occ=oOD(date,rid);const free=room.beds-occ;
+  document.getElementById('dp-t').textContent='Δωμάτιο '+rid;
+  document.getElementById('dp-s').textContent=(LBL[room.type]||room.type)+' · '+room.beds+' κρεβάτι'+(room.beds===1?'':'α');
+  document.getElementById('dp-free').textContent=free;
+  document.getElementById('dp-of').textContent='από '+room.beds+' — ελεύθερ'+(free===1?'ο':'α');
+  const bksT=bOD(date).filter(b=>b.roomId===rid);
+  let bh='',bi=0;
+  bksT.forEach(b=>{for(let j=0;j<b.count;j++){const nm=b.isGroup?(b.members[j]?.name?b.members[j].name.split(' ')[0].slice(0,5):'—'):b.groupName.split(' ')[0].slice(0,5);const cls=b.co?'occ':'indef-big';bh+=`<div class="bed-big ${cls}" style="${b.co?'background:'+b.color:''}"><div class="bed-big-lbl">${nm}</div></div>`;bi++;}});
+  for(let i=bi;i<room.beds;i++)bh+=`<div class="bed-big"><div class="bed-big-lbl" style="color:#bbb">κενό</div></div>`;
+  document.getElementById('dp-beds').innerHTML=bh;
+  const cur=document.getElementById('dp-cur');cur.innerHTML='';
+  if(!bksT.length){cur.innerHTML='<div class="tl-empty">Κανένας πελάτης σήμερα</div>';}
+  else bksT.forEach(b=>{
+    const indef=!b.co;
+    const cls='tl-item'+(indef?' indef-tl':'');
+    const coTxt=indef?'<span class="indef-pill">∞ Αόριστη</span>':fd(b.co);
+    const editBtn=`<button class="btn warning" style="flex-shrink:0;margin-left:4px" onclick="openEdit(${b.id})">Επεξ.</button>`;
+    if(b.isGroup){
+      const named=b.members.filter(m=>m.name);const anon=b.count-named.length;
+      named.forEach(m=>{cur.innerHTML+=`<div class="${cls}"><div class="tl-dot" style="background:${b.color}"></div><div style="flex:1;min-width:0"><div class="tl-name">${m.name} <span class="gtag" style="background:${b.color}22;color:${b.color}">${b.groupName}</span></div><div class="tl-sub">${fd(b.ci)} → ${coTxt}</div>${m.depTime?`<div class="tl-time">✈ ${m.depTime}</div>`:''}</div>${editBtn}</div>`;});
+      if(anon>0)cur.innerHTML+=`<div class="${cls}"><div class="tl-dot" style="background:${b.color}"></div><div style="flex:1"><div class="tl-name" style="color:#888">+${anon} αδήλωτα <span class="gtag" style="background:${b.color}22;color:${b.color}">${b.groupName}</span></div><div class="tl-sub">${fd(b.ci)} → ${coTxt}</div></div>${editBtn}</div>`;
+    } else {
+      const m=b.members[0];
+      cur.innerHTML+=`<div class="${cls}"><div class="tl-dot" style="background:${b.color}"></div><div style="flex:1;min-width:0"><div class="tl-name">${b.groupName}</div><div class="tl-sub">${fd(b.ci)} → ${coTxt}</div>${m&&m.depTime?`<div class="tl-time">✈ ${m.depTime}</div>`:''}</div>${editBtn}</div>`;
+    }
+  });
+  const upEl=document.getElementById('dp-up');const upSec=document.getElementById('dp-up-sec');
+  const ref=new Date(date);
+  const up=BKS.filter(b=>b.roomId===rid&&b.ci>date&&new Date(b.ci)<=new Date(ref.getTime()+30*86400000)).sort((a,b)=>a.ci.localeCompare(b.ci));
+  if(!up.length)upSec.style.display='none';
+  else{upSec.style.display='block';upEl.innerHTML='';up.slice(0,5).forEach(b=>{const indef=!b.co;const lbl=b.isGroup?`${b.groupName} (${b.count} άτ.)`:b.groupName;const coT=indef?'<span class="indef-pill">∞</span>':fd(b.co);upEl.innerHTML+=`<div class="tl-item"><div class="tl-dot" style="background:${b.color}"></div><div style="flex:1"><div class="tl-name">${lbl}</div><div class="tl-sub">${fd(b.ci)} → ${coT}</div></div><button class="btn warning" style="flex-shrink:0" onclick="openEdit(${b.id})">Επεξ.</button></div>`;});}
+  document.getElementById('dp').style.display='block';
+  setTimeout(()=>document.getElementById('dp').scrollIntoView({behavior:'smooth',block:'nearest'}),50);
+  RG();
+}
+function CDR(){openRid=null;document.getElementById('dp').style.display='none';RG();}
+
+// Edit modal
+function openEdit(id){
+  const b=BKS.find(x=>x.id===id);if(!b)return;
+  editId=id;
+  document.getElementById('modal-title').textContent='Επεξεργασία: '+b.groupName;
+  document.getElementById('e-name').value=b.groupName;
+  const rs=document.getElementById('e-room');rs.innerHTML='';
+  ROOMS.forEach(r=>{const o=document.createElement('option');o.value=r.id;o.textContent=`Δωμ. ${r.id} — ${LBL[r.type]||r.type}`;rs.appendChild(o);});
+  rs.value=b.roomId;
+  document.getElementById('e-ci').value=b.ci;
+  const indef=!b.co;
+  document.getElementById('e-indef').checked=indef;
+  const coEl=document.getElementById('e-co');coEl.disabled=indef;coEl.value=b.co||'';
+  const ms=document.getElementById('e-members-sec');ms.innerHTML='';
+  if(b.members&&b.members.length){
+    ms.innerHTML='<div style="font-size:12px;font-weight:500;color:#666;margin-bottom:.5rem;margin-top:.25rem;">Μέλη — Όνομα &amp; Ώρα αναχώρησης</div>';
+    b.members.forEach((m,i)=>{
+      const row=document.createElement('div');row.className='member-edit-row';
+      row.innerHTML=`<span class="member-edit-num">${i+1}.</span><input type="text" id="em-n-${i}" value="${m.name||''}" placeholder="Μέλος ${i+1}" /><input type="time" id="em-t-${i}" value="${m.depTime||''}" title="Ώρα αναχώρησης" />`;
+      ms.appendChild(row);
+    });
+  }
+  document.getElementById('edit-modal').style.display='flex';
+}
+function closeModal(){document.getElementById('edit-modal').style.display='none';editId=null;}
+function saveEdit(){
+  const b=BKS.find(x=>x.id===editId);if(!b)return;
+  const newName=document.getElementById('e-name').value.trim();
+  const newRoom=document.getElementById('e-room').value;
+  const newCi=document.getElementById('e-ci').value;
+  const indef=document.getElementById('e-indef').checked;
+  const newCo=indef?null:document.getElementById('e-co').value;
+  if(!newName||!newRoom||!newCi)return T('Συμπλήρωσε τα υποχρεωτικά πεδία');
+  if(!indef&&newCo&&newCi>=newCo)return T('Το check-out πρέπει να είναι μετά το check-in');
+  b.groupName=newName;b.roomId=newRoom;b.ci=newCi;b.co=newCo;
+  if(b.members)b.members.forEach((m,i)=>{m.name=(document.getElementById(`em-n-${i}`)?.value||'').trim();m.depTime=document.getElementById(`em-t-${i}`)?.value||'';});
+  closeModal();T('✓ Κράτηση ενημερώθηκε');RA();
+}
+function delFromModal(){if(!editId)return;BKS=BKS.filter(b=>b.id!==editId);closeModal();T('Κράτηση διαγράφηκε');RA();}
+
+function SM(m){document.getElementById('ms').classList.toggle('active',m==='s');document.getElementById('mg').classList.toggle('active',m==='g');document.getElementById('fs').style.display=m==='s'?'block':'none';document.getElementById('fg').style.display=m==='g'?'block':'none';if(m==='g')RMT('gmt','gc');}
+function SBM(m){document.getElementById('bms').classList.toggle('active',m==='s');document.getElementById('bmg').classList.toggle('active',m==='g');document.getElementById('bfs').style.display=m==='s'?'block':'none';document.getElementById('bfg').style.display=m==='g'?'block':'none';if(m==='g')RMT('bgmt','bgc');}
+function RMT(cid,cnt){
+  const n=parseInt(document.getElementById(cnt).value)||1;const pfx=cid==='gmt'?'gm':'bgm';
+  const c=document.getElementById(cid);c.innerHTML='';
+  const tbl=document.createElement('table');tbl.className='members-table';
+  tbl.innerHTML='<thead><tr><th style="width:22px">#</th><th>Όνομα μέλους (προαιρ.)</th><th style="width:100px">Ώρα αναχώρησης</th></tr></thead>';
+  const tb=document.createElement('tbody');
+  for(let i=0;i<n;i++){const tr=document.createElement('tr');tr.innerHTML=`<td class="mem-num">${i+1}</td><td><input type="text" id="${pfx}-n-${i}" placeholder="Μέλος ${i+1}" /></td><td><input type="time" id="${pfx}-t-${i}" /></td>`;tb.appendChild(tr);}
+  tbl.appendChild(tb);c.appendChild(tbl);
+  if(cid==='gmt')UGRS();else UBGRS();
+}
+
+function BRO(sid,ci,co,need){
+  const sel=document.getElementById(sid);sel.innerHTML='<option value="">— Επιλογή —</option>';
+  if(!ci)return;
+  ROOMS.forEach(r=>{
+    // check occupancy on ci (and co-1 if definite)
+    const dates=co?[ci,aD(ci,Math.max(0,Math.ceil((new Date(co)-new Date(ci))/86400000)-1))].filter((v,i,a)=>a.indexOf(v)===i):[ci];
+    const mx=Math.max(...dates.map(d=>oOD(d,r.id)));
+    const fr=r.beds-mx;
+    if(fr>=need){const o=document.createElement('option');o.value=r.id;o.textContent=`Δωμ. ${r.id} — ${LBL[r.type]||r.type} (${fr} ελεύθ.)`;sel.appendChild(o);}
+  });
+}
+function URS(){const indef=document.getElementById('indef-s')?.checked;BRO('rs',document.getElementById('ci').value,indef?null:document.getElementById('co').value,1);}
+function UGRS(){const n=parseInt(document.getElementById('gc').value)||1;const indef=document.getElementById('indef-g')?.checked;BRO('grs',document.getElementById('gci').value,indef?null:document.getElementById('gco').value,n);}
+function UBRS(){const indef=document.getElementById('indef-bs')?.checked;BRO('brs',document.getElementById('bci').value,indef?null:document.getElementById('bco').value,1);}
+function UBGRS(){const n=parseInt(document.getElementById('bgc').value)||1;const indef=document.getElementById('indef-bg')?.checked;BRO('bgrs',document.getElementById('bgci').value,indef?null:document.getElementById('bgco').value,n);}
+function US(){if(!selD)return;const o=tOD(selD);const t=tB();document.getElementById('st').textContent=t;document.getElementById('so').textContent=o;document.getElementById('sf').textContent=t-o;}
+function SF(f,el){flt=f;document.querySelectorAll('.ftab').forEach(t=>t.classList.remove('active'));el.classList.add('active');RG();}
+
+function VB(rid,ci,co,cnt){
+  if(!rid||!ci)return'Συμπλήρωσε όλα τα υποχρεωτικά πεδία';
+  if(co&&ci>=co)return'Το check-out πρέπει να είναι μετά το check-in';
+  const r=ROOMS.find(r=>r.id===rid);
+  const existing=oOD(ci,rid);
+  if(existing+cnt>r.beds)return`Δωμ. ${rid} δεν έχει αρκετά κρεβάτια για αυτή την ημερομηνία`;
+  return null;
+}
+function MKB(isg,gname,rid,ci,co,cnt,mems){const color=CLRS[bid%CLRS.length];BKS.push({id:bid++,isGroup:isg,groupName:gname,roomId:rid,ci,co,color,count:cnt,members:mems});}
+
+function ABS(){
+  const name=document.getElementById('gn').value.trim();const rid=document.getElementById('rs').value;
+  const ci=document.getElementById('ci').value;const indef=document.getElementById('indef-s').checked;
+  const co=indef?null:document.getElementById('co').value;const dt=document.getElementById('dt').value||'';
+  if(!name)return T('Εισάγετε όνομα');const err=VB(rid,ci,co,1);if(err)return T(err);
+  MKB(false,name,rid,ci,co,1,[{name,depTime:dt}]);
+  document.getElementById('gn').value='';document.getElementById('dt').value='';document.getElementById('rs').value='';
+  document.getElementById('indef-s').checked=false;document.getElementById('co').disabled=false;
+  T('✓ '+name+' → Δωμ. '+rid+(indef?' [∞ Αόριστη]':''));AB();
+}
+function ABG(){
+  const gname=document.getElementById('ggn').value.trim();const cnt=parseInt(document.getElementById('gc').value)||1;
+  const rid=document.getElementById('grs').value;const ci=document.getElementById('gci').value;
+  const indef=document.getElementById('indef-g').checked;const co=indef?null:document.getElementById('gco').value;
+  if(!gname)return T('Εισάγετε όνομα γκρουπ');const err=VB(rid,ci,co,cnt);if(err)return T(err);
+  const mems=[];for(let i=0;i<cnt;i++)mems.push({name:(document.getElementById(`gm-n-${i}`)?.value||'').trim(),depTime:document.getElementById(`gm-t-${i}`)?.value||''});
+  MKB(true,gname,rid,ci,co,cnt,mems);
+  document.getElementById('ggn').value='';document.getElementById('grs').value='';
+  document.getElementById('indef-g').checked=false;document.getElementById('gco').disabled=false;
+  T('✓ Γκρουπ "'+gname+'" → Δωμ. '+rid+(indef?' [∞]':''));AB();
+}
+function ABD(){
+  const name=document.getElementById('bgn').value.trim();const rid=document.getElementById('brs').value;
+  const ci=document.getElementById('bci').value;const indef=document.getElementById('indef-bs').checked;
+  const co=indef?null:document.getElementById('bco').value;const dt=document.getElementById('bdt').value||'';
+  if(!name)return T('Εισάγετε όνομα');const err=VB(rid,ci,co,1);if(err)return T(err);
+  MKB(false,name,rid,ci,co,1,[{name,depTime:dt}]);
+  document.getElementById('bgn').value='';document.getElementById('bdt').value='';
+  document.getElementById('indef-bs').checked=false;document.getElementById('bco').disabled=false;
+  T('✓ '+name+' → Δωμ. '+rid+(indef?' [∞]':''));ABx();
+}
+function ABGD(){
+  const gname=document.getElementById('bggn').value.trim();const cnt=parseInt(document.getElementById('bgc').value)||1;
+  const rid=document.getElementById('bgrs').value;const ci=document.getElementById('bgci').value;
+  const indef=document.getElementById('indef-bg').checked;const co=indef?null:document.getElementById('bgco').value;
+  if(!gname)return T('Εισάγετε όνομα γκρουπ');const err=VB(rid,ci,co,cnt);if(err)return T(err);
+  const mems=[];for(let i=0;i<cnt;i++)mems.push({name:(document.getElementById(`bgm-n-${i}`)?.value||'').trim(),depTime:document.getElementById(`bgm-t-${i}`)?.value||''});
+  MKB(true,gname,rid,ci,co,cnt,mems);
+  document.getElementById('bggn').value='';document.getElementById('bgrs').value='';
+  document.getElementById('indef-bg').checked=false;document.getElementById('bgco').disabled=false;
+  T('✓ Γκρουπ "'+gname+'" → Δωμ. '+rid+(indef?' [∞]':''));ABx();
+}
+function RA(){RC();RB();if(selD){RG();US();}if(openRid)ODR(openRid);const c=document.getElementById('save-indicator');if(c&&!c.textContent)c.textContent=BKS.length?BKS.length+' κρατήσεις':'';}
+function AB(){RG();US();URS();UGRS();RC();RB();if(openRid)ODR(openRid);}
+function ABx(){RB();RC();if(selD){RG();US();}if(openRid)ODR(openRid);}
+
+function RG(){
+  if(!selD)return;
+  const search=document.getElementById('sr')?.value.toLowerCase()||'';
+  const grid=document.getElementById('rg');grid.innerHTML='';
+  const fil=ROOMS.filter(r=>{
+    const s=rSt(selD,r.id);
+    if(flt!=='all'&&s!==flt)return false;
+    if(search&&!r.id.includes(search)&&!bOD(selD).filter(b=>b.roomId===r.id).some(b=>b.groupName.toLowerCase().includes(search)||b.members.some(m=>m.name.toLowerCase().includes(search))))return false;
+    return true;
+  });
+  if(!fil.length){grid.innerHTML='<div class="empty-msg">Δεν βρέθηκαν δωμάτια</div>';return;}
+  fil.forEach(r=>{
+    const bks=bOD(selD).filter(b=>b.roomId===r.id);
+    const s=rSt(selD,r.id);const bc=s==='full'?'full':s==='partial'?'partial':'avail';const bt=s==='full'?'Πλήρες':s==='partial'?'Μερικώς':'Ελεύθερο';
+    const occ=bks.reduce((x,b)=>x+b.count,0);const pct=Math.round(occ/r.beds*100);
+    const someIndef=bks.some(b=>!b.co);
+    let bh='';bks.forEach(b=>{const nd=!b.co;for(let j=0;j<b.count;j++){if(nd)bh+='<div class="bed occ indef-bed"></div>';else bh+=`<div class="bed occ" style="background:${b.color};border-color:${b.color}"></div>`;}});for(let i=occ;i<r.beds;i++)bh+='<div class="bed"></div>';
+    let gh='';
+    if(!bks.length)gh='<div class="no-guests">Κανένας πελάτης</div>';
+    else bks.forEach(b=>{
+      const nd=!b.co;const coT=nd?'<span class="indef-pill" style="font-size:9px">∞</span>':fd(b.co);
+      if(b.isGroup){const named=b.members.filter(m=>m.name);if(named.length){named.forEach(m=>{gh+=`<div class="gi"><span class="gn">${m.name}</span>${m.depTime?`<span class="gt">✈ ${m.depTime}</span>`:''}<span class="gtag" style="background:${b.color}22;color:${b.color}">${b.groupName}</span></div>`;});const an=b.count-named.length;if(an>0)gh+=`<div class="gi"><span class="gn" style="color:#888">+${an} αδήλωτα</span><span class="gtag" style="background:${b.color}22;color:${b.color}">${b.groupName}</span></div>`;}else gh+=`<div class="gi"><span class="gn">${b.groupName}</span>${nd?'<span class="indef-pill" style="font-size:9px">∞</span>':`<span class="gtag" style="background:${b.color}22;color:${b.color}">${b.count} άτ.</span>`}</div>`;}
+      else{const m=b.members[0];gh+=`<div class="gi"><span class="gn">${b.groupName}</span>${m&&m.depTime?`<span class="gt">✈ ${m.depTime}</span>`:''}${coT}</div>`;}
+    });
+    const card=document.createElement('div');
+    card.className='room-card'+(openRid===r.id?' open':'');
+    card.title='Κλικ για λεπτομέρειες';
+    card.innerHTML=`<div class="room-header"><div><div class="room-num">Δωμ. ${r.id}</div><div class="room-type">${LBL[r.type]||r.type}</div></div><span class="badge ${bc}">${bt}${someIndef?' <span style="font-size:10px">∞</span>':''}</span></div><div class="beds">${bh}</div><div class="guests-list">${gh}</div><div class="cap-bar"><div class="cap-fill${pct>=100?' full':someIndef?' indef':''}" style="width:${pct}%"></div></div>`;
+    card.onclick=()=>ODR(r.id);
+    grid.appendChild(card);
+  });
+}
+
+function RB(){
+  const search=document.getElementById('bsr')?.value.toLowerCase()||'';
+  const list=document.getElementById('bl');list.innerHTML='';
+  const fil=BKS.filter(b=>!search||b.groupName.toLowerCase().includes(search)||b.roomId.includes(search)||b.members.some(m=>m.name.toLowerCase().includes(search)));
+  if(!fil.length){list.innerHTML='<div style="text-align:center;color:#888;font-size:14px;padding:2rem;">Δεν υπάρχουν κρατήσεις</div>';return;}
+  [...fil].sort((a,b)=>a.ci.localeCompare(b.ci)).forEach(b=>{
+    const indef=!b.co;
+    const coDisp=indef?'<span class="indef-pill">∞ Αόριστη</span>':fd(b.co);
+    const gb=b.isGroup?`<span class="badge grp" style="font-size:10px;padding:1px 6px;margin-left:6px;">Γκρουπ · ${b.count} άτ.</span>`:'';
+    const named=b.members.filter(m=>m.name);const anon=b.count-named.length;const hasTm=b.members.some(m=>m.depTime);
+    let mh='';
+    if(b.isGroup||hasTm){
+      mh='<div class="bc-members">';
+      if(named.length)named.forEach((m,i)=>{mh+=`<div class="bc-member"><span>${i+1}. ${m.name}</span>${m.depTime?`<span class="dep-time">✈ ${m.depTime}</span>`:''}</div>`;});
+      else if(!b.isGroup&&hasTm){const m=b.members[0];if(m?.depTime)mh+=`<div class="bc-member"><span>${b.groupName}</span><span class="dep-time">✈ ${m.depTime}</span></div>`;}
+      if(anon>0&&b.isGroup)mh+=`<div class="bc-member" style="color:#aaa">+${anon} αδήλωτα μέλη</div>`;
+      mh+='</div>';
+    }
+    const card=document.createElement('div');card.className='booking-card'+(indef?' indef-card':'');
+    card.innerHTML=`<div class="bc-header"><div class="bc-dot" style="background:${b.color}"></div><div class="bc-title"><div class="bc-name">${b.groupName}${gb}</div><div class="bc-meta">Δωμ. ${b.roomId} &nbsp;·&nbsp; ${fd(b.ci)} → ${coDisp}</div></div><div class="bc-actions"><button class="btn warning" onclick="openEdit(${b.id})">Επεξεργασία</button><button class="btn danger" onclick="RMV(${b.id})">Διαγραφή</button></div></div>${mh}`;
+    list.appendChild(card);
+  });
+}
+function RMV(id){BKS=BKS.filter(b=>b.id!==id);RA();SV();T('Κράτηση διαγράφηκε');}
+function ST(t){
+  document.getElementById('tab-r').classList.toggle('active',t==='r');
+  document.getElementById('tab-b').classList.toggle('active',t==='b');
+  document.getElementById('vr').style.display=t==='r'?'block':'none';
+  document.getElementById('vb').style.display=t==='b'?'block':'none';
+  if(t==='b'){RB();const ci=document.getElementById('bci');if(!ci.value){ci.value=tds();document.getElementById('bco').value=aD(tds(),1);}const bgci=document.getElementById('bgci');if(!bgci.value){bgci.value=tds();document.getElementById('bgco').value=aD(tds(),1);}UBRS();UBGRS();}
+}
+function T(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+// ---- localStorage ----
+const LS_KEY='hotel_bks_v1';
+function SV(){
+  try{
+    localStorage.setItem(LS_KEY,JSON.stringify({bks:BKS,bid}));
+    const el=document.getElementById('save-indicator');
+    if(el){el.textContent='✓ Αποθηκεύτηκε';el.style.color='#3b6d11';setTimeout(()=>{el.textContent='';},2000);}
+  }catch(e){console.warn('localStorage save failed',e);}
+}
+function LD(){
+  try{
+    const raw=localStorage.getItem(LS_KEY);
+    if(!raw)return false;
+    const data=JSON.parse(raw);
+    if(data&&Array.isArray(data.bks)){BKS=data.bks;bid=data.bid||data.bks.length+1;return true;}
+  }catch(e){console.warn('localStorage load failed',e);}
+  return false;
+}
+function clearData(){
+  if(!confirm('Διαγραφή ΟΛΩΝ των κρατήσεων; Αυτή η ενέργεια δεν αναιρείται.'))return;
+  BKS=[];bid=1;SV();RA();T('Όλα τα δεδομένα διαγράφηκαν');
+}
+
+// Patch all write functions to auto-save
+const _AB=AB,_ABx=ABx,_RA=RA;
+function AB(){_AB();SV();}
+function ABx(){_ABx();SV();}
+function RA(){_RA();} // RA is called inside save flows already; individual callers do SV()
+
+// Patch saveEdit and delFromModal
+const _saveEdit=saveEdit,_delFromModal=delFromModal;
+function saveEdit(){_saveEdit();SV();}
+function delFromModal(){_delFromModal();SV();}
+
+// close modal on overlay click
+document.getElementById('edit-modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+
+// Load on start
+const loaded=LD();
+RC();
+if(loaded)T('📂 Φορτώθηκαν '+BKS.length+' κρατήσεις');
+</script>
+</body>
+</html>
