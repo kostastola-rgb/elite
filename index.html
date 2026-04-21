@@ -193,7 +193,8 @@ h1{font-size:20px;font-weight:600;margin-bottom:1.25rem;}
         <div class="panel-title">Νέα κράτηση</div>
         <div class="form-row">
           <div class="form-group"><label>Όνομα πελάτη</label><input type="text" id="gn" placeholder="Παπαδόπουλος" /></div>
-          <div class="form-group"><label>Δωμάτιο</label><select id="rs"><option value="">— Επιλογή —</option></select></div>
+          <div class="form-group" style="max-width:110px;"><label>Φύλο (προαιρ.)</label><select id="gsex"><option value="">—</option><option value="M">♂ Άντρας</option><option value="F">♀ Γυναίκα</option></select></div>
+          <div class="form-group"><label>Δωμάτιο (κενό = αυτόματο)</label><select id="rs"><option value="">— Αυτόματο —</option></select></div>
           <div class="form-group"><label>Check-in</label><input type="date" id="ci" onchange="URS()" /></div>
           <div class="form-group"><label>Check-out</label><input type="date" id="co" onchange="URS()" /></div>
         </div>
@@ -259,7 +260,8 @@ h1{font-size:20px;font-weight:600;margin-bottom:1.25rem;}
     <div id="bfs">
       <div class="form-row">
         <div class="form-group"><label>Όνομα</label><input type="text" id="bgn" placeholder="Όνομα" /></div>
-        <div class="form-group"><label>Δωμάτιο</label><select id="brs"><option value="">—</option></select></div>
+        <div class="form-group" style="max-width:110px;"><label>Φύλο (προαιρ.)</label><select id="bgsex"><option value="">—</option><option value="M">♂ Άντρας</option><option value="F">♀ Γυναίκα</option></select></div>
+        <div class="form-group"><label>Δωμάτιο (κενό = αυτόματο)</label><select id="brs"><option value="">— Αυτόματο —</option></select></div>
         <div class="form-group"><label>Check-in</label><input type="date" id="bci" onchange="UBRS()" /></div>
         <div class="form-group"><label>Check-out</label><input type="date" id="bco" onchange="UBRS()" /></div>
       </div>
@@ -294,6 +296,7 @@ h1{font-size:20px;font-weight:600;margin-bottom:1.25rem;}
     <div class="modal-field"><label>Check-in</label><input type="date" id="e-ci" /></div>
     <div class="modal-field"><label>Check-out</label><input type="date" id="e-co" /></div>
     <label class="indef-check" style="margin-bottom:.6rem;"><input type="checkbox" id="e-indef" onchange="TEI()"> Αόριστη αναχώρηση ∞</label>
+    <div id="e-singlesex-sec"></div>
     <div id="e-members-sec"></div>
     <hr class="modal-sep">
     <div class="modal-actions">
@@ -402,11 +405,11 @@ function ODR(rid){
     const editBtn=`<button class="btn warning" style="flex-shrink:0;margin-left:4px" onclick="openEdit(${b.id})">Επεξ.</button>`;
     if(b.isGroup){
       const named=b.members.filter(m=>m.name);const anon=b.count-named.length;
-      named.forEach(m=>{cur.innerHTML+=`<div class="${cls}"><div class="tl-dot" style="background:${b.color}"></div><div style="flex:1;min-width:0"><div class="tl-name">${m.name} <span class="gtag" style="background:${b.color}22;color:${b.color}">${b.groupName}</span></div><div class="tl-sub">${fd(b.ci)} → ${coTxt}</div>${m.depTime?`<div class="tl-time">✈ ${m.depTime}</div>`:''}</div>${editBtn}</div>`;});
+      named.forEach(m=>{const gi=m.sex?`<span style="color:${m.sex==='M'?'#185FA5':'#993556'};font-size:11px">${m.sex==='M'?'♂':'♀'}</span> `:'';cur.innerHTML+=`<div class="${cls}"><div class="tl-dot" style="background:${b.color}"></div><div style="flex:1;min-width:0"><div class="tl-name">${gi}${m.name} <span class="gtag" style="background:${b.color}22;color:${b.color}">${b.groupName}</span></div><div class="tl-sub">${fd(b.ci)} → ${coTxt}</div>${m.depTime?`<div class="tl-time">✈ ${m.depTime}</div>`:''}</div>${editBtn}</div>`;});
       if(anon>0)cur.innerHTML+=`<div class="${cls}"><div class="tl-dot" style="background:${b.color}"></div><div style="flex:1"><div class="tl-name" style="color:#888">+${anon} αδήλωτα <span class="gtag" style="background:${b.color}22;color:${b.color}">${b.groupName}</span></div><div class="tl-sub">${fd(b.ci)} → ${coTxt}</div></div>${editBtn}</div>`;
     } else {
-      const m=b.members[0];
-      cur.innerHTML+=`<div class="${cls}"><div class="tl-dot" style="background:${b.color}"></div><div style="flex:1;min-width:0"><div class="tl-name">${b.groupName}</div><div class="tl-sub">${fd(b.ci)} → ${coTxt}</div>${m&&m.depTime?`<div class="tl-time">✈ ${m.depTime}</div>`:''}</div>${editBtn}</div>`;
+      const m=b.members[0];const gi=m&&m.sex?`<span style="color:${m.sex==='M'?'#185FA5':'#993556'};font-size:11px">${m.sex==='M'?'♂':'♀'}</span> `:'';
+      cur.innerHTML+=`<div class="${cls}"><div class="tl-dot" style="background:${b.color}"></div><div style="flex:1;min-width:0"><div class="tl-name">${gi}${b.groupName}</div><div class="tl-sub">${fd(b.ci)} → ${coTxt}</div>${m&&m.depTime?`<div class="tl-time">✈ ${m.depTime}</div>`:''}</div>${editBtn}</div>`;
     }
   });
   const upEl=document.getElementById('dp-up');const upSec=document.getElementById('dp-up-sec');
@@ -433,12 +436,17 @@ function openEdit(id){
   const indef=!b.co;
   document.getElementById('e-indef').checked=indef;
   const coEl=document.getElementById('e-co');coEl.disabled=indef;coEl.value=b.co||'';
-  const ms=document.getElementById('e-members-sec');ms.innerHTML='';
+  // Single-guest gender field
+  const ssg=document.getElementById('e-singlesex-sec');ssg.innerHTML='';
+  if(!b.isGroup&&b.members&&b.members.length===1){
+    const m=b.members[0];
+    ssg.innerHTML=`<div class="modal-field" style="margin-bottom:.6rem;"><label>Φύλο (προαιρ.)</label><select id="e-sex" style="font-size:13px;padding:6px 9px;border-radius:8px;border:1px solid #d0cec7;background:#fff;"><option value="">—</option><option value="M"${m.sex==='M'?' selected':''}>♂ Άντρας</option><option value="F"${m.sex==='F'?' selected':''}>♀ Γυναίκα</option></select></div>`;
+  }
   if(b.members&&b.members.length){
-    ms.innerHTML='<div style="font-size:12px;font-weight:500;color:#666;margin-bottom:.5rem;margin-top:.25rem;">Μέλη — Όνομα &amp; Ώρα αναχώρησης</div>';
+    ms.innerHTML='<div style="font-size:12px;font-weight:500;color:#666;margin-bottom:.5rem;margin-top:.25rem;">Μέλη — Όνομα, Φύλο &amp; Ώρα αναχώρησης</div>';
     b.members.forEach((m,i)=>{
       const row=document.createElement('div');row.className='member-edit-row';
-      row.innerHTML=`<span class="member-edit-num">${i+1}.</span><input type="text" id="em-n-${i}" value="${m.name||''}" placeholder="Μέλος ${i+1}" /><input type="time" id="em-t-${i}" value="${m.depTime||''}" title="Ώρα αναχώρησης" />`;
+      row.innerHTML=`<span class="member-edit-num">${i+1}.</span><input type="text" id="em-n-${i}" value="${m.name||''}" placeholder="Μέλος ${i+1}" /><select id="em-g-${i}" style="font-size:12px;padding:4px 5px;border-radius:6px;border:1px solid #d0cec7;background:#fff;max-width:90px"><option value="">—</option><option value="M"${m.sex==='M'?' selected':''}>♂ Άντρας</option><option value="F"${m.sex==='F'?' selected':''}>♀ Γυναίκα</option></select><input type="time" id="em-t-${i}" value="${m.depTime||''}" title="Ώρα αναχώρησης" />`;
       ms.appendChild(row);
     });
   }
@@ -455,7 +463,9 @@ function saveEdit(){
   if(!newName||!newRoom||!newCi)return T('Συμπλήρωσε τα υποχρεωτικά πεδία');
   if(!indef&&newCo&&newCi>=newCo)return T('Το check-out πρέπει να είναι μετά το check-in');
   b.groupName=newName;b.roomId=newRoom;b.ci=newCi;b.co=newCo;
-  if(b.members)b.members.forEach((m,i)=>{m.name=(document.getElementById(`em-n-${i}`)?.value||'').trim();m.depTime=document.getElementById(`em-t-${i}`)?.value||'';});
+  if(b.members)b.members.forEach((m,i)=>{m.name=(document.getElementById(`em-n-${i}`)?.value||'').trim();m.sex=document.getElementById(`em-g-${i}`)?.value||'';m.depTime=document.getElementById(`em-t-${i}`)?.value||'';});
+  // single guest sex
+  if(!b.isGroup&&b.members&&b.members.length===1){const sx=document.getElementById('e-sex');if(sx)b.members[0].sex=sx.value||'';}
   closeModal();T('✓ Κράτηση ενημερώθηκε');RC();RB();if(selD){RG();US();}if(openRid)ODR(openRid);SV();
 }
 function delFromModal(){if(!editId)return;BKS=BKS.filter(b=>b.id!==editId);closeModal();T('Κράτηση διαγράφηκε');RC();RB();if(selD){RG();US();}if(openRid)ODR(openRid);SV();}
@@ -466,9 +476,13 @@ function RMT(cid,cnt){
   const n=parseInt(document.getElementById(cnt).value)||1;const pfx=cid==='gmt'?'gm':'bgm';
   const c=document.getElementById(cid);c.innerHTML='';
   const tbl=document.createElement('table');tbl.className='members-table';
-  tbl.innerHTML='<thead><tr><th style="width:22px">#</th><th>Όνομα μέλους (προαιρ.)</th><th style="width:100px">Ώρα αναχώρησης</th></tr></thead>';
+  tbl.innerHTML='<thead><tr><th style="width:22px">#</th><th>Όνομα μέλους (προαιρ.)</th><th style="width:80px">Φύλο</th><th style="width:96px">Ώρα αναχ.</th></tr></thead>';
   const tb=document.createElement('tbody');
-  for(let i=0;i<n;i++){const tr=document.createElement('tr');tr.innerHTML=`<td class="mem-num">${i+1}</td><td><input type="text" id="${pfx}-n-${i}" placeholder="Μέλος ${i+1}" /></td><td><input type="time" id="${pfx}-t-${i}" /></td>`;tb.appendChild(tr);}
+  for(let i=0;i<n;i++){
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td class="mem-num">${i+1}</td><td><input type="text" id="${pfx}-n-${i}" placeholder="Μέλος ${i+1}" /></td><td><select id="${pfx}-g-${i}" style="font-size:12px;padding:3px 5px;border-radius:6px;border:1px solid #d0cec7;background:#fff;width:100%"><option value="">—</option><option value="M">♂ Άντρας</option><option value="F">♀ Γυναίκα</option></select></td><td><input type="time" id="${pfx}-t-${i}" /></td>`;
+    tb.appendChild(tr);
+  }
   tbl.appendChild(tb);c.appendChild(tbl);
   if(cid==='gmt')UGRS();else UBGRS();
 }
@@ -491,53 +505,104 @@ function UBGRS(){const n=parseInt(document.getElementById('bgc').value)||1;const
 function US(){if(!selD)return;const o=tOD(selD);const t=tB();document.getElementById('st').textContent=t;document.getElementById('so').textContent=o;document.getElementById('sf').textContent=t-o;}
 function SF(f,el){flt=f;document.querySelectorAll('.ftab').forEach(t=>t.classList.remove('active'));el.classList.add('active');RG();}
 
+// ---- Auto-assign room logic ----
+// Returns roomId or null. sex='M'|'F'|'' 
+function autoAssign(ci, co, cnt, sex){
+  // Sort rooms by beds ascending (prefer smallest that fits)
+  const sorted=[...ROOMS].sort((a,b)=>a.beds-b.beds);
+  for(const room of sorted){
+    // Check capacity
+    const dates=co?[ci,aD(ci,Math.max(0,Math.ceil((new Date(co)-new Date(ci))/86400000)-1))].filter((v,i,a)=>a.indexOf(v)===i):[ci];
+    const mx=Math.max(...dates.map(d=>oOD(d,room.id)));
+    const free=room.beds-mx;
+    if(free<cnt)continue;
+    // Check gender rule: if sex is given, room must not have opposite sex guests
+    if(sex){
+      const opp=sex==='M'?'F':'M';
+      const hasOpp=dates.some(d=>bOD(d).filter(b=>b.roomId===room.id).some(b=>b.members.some(m=>m.sex===opp)));
+      if(hasOpp)continue;
+    }
+    return room.id;
+  }
+  return null;
+}
+
+// Gender display helper
+function genderIcon(sex){return sex==='M'?'♂':sex==='F'?'♀':'';}
+
 function VB(rid,ci,co,cnt){
-  if(!rid||!ci)return'Συμπλήρωσε όλα τα υποχρεωτικά πεδία';
+  if(!ci)return'Βάλε ημερομηνία check-in';
   if(co&&ci>=co)return'Το check-out πρέπει να είναι μετά το check-in';
+  if(!rid)return null; // auto-assign, validated separately
   const r=ROOMS.find(r=>r.id===rid);
   const existing=oOD(ci,rid);
-  if(existing+cnt>r.beds)return`Δωμ. ${rid} δεν έχει αρκετά κρεβάτια για αυτή την ημερομηνία`;
+  if(existing+cnt>r.beds)return`Δωμ. ${rid} δεν έχει αρκετά κρεβάτια`;
   return null;
 }
 function MKB(isg,gname,rid,ci,co,cnt,mems){const color=CLRS[bid%CLRS.length];BKS.push({id:bid++,isGroup:isg,groupName:gname,roomId:rid,ci,co,color,count:cnt,members:mems});}
 
 function ABS(){
-  const name=document.getElementById('gn').value.trim();const rid=document.getElementById('rs').value;
+  const name=document.getElementById('gn').value.trim();
+  const sex=document.getElementById('gsex').value;
+  let rid=document.getElementById('rs').value;
   const ci=document.getElementById('ci').value;const indef=document.getElementById('indef-s').checked;
   const co=indef?null:document.getElementById('co').value;const dt=document.getElementById('dt').value||'';
-  if(!name)return T('Εισάγετε όνομα');const err=VB(rid,ci,co,1);if(err)return T(err);
-  MKB(false,name,rid,ci,co,1,[{name,depTime:dt}]);
-  document.getElementById('gn').value='';document.getElementById('dt').value='';document.getElementById('rs').value='';
+  if(!name)return T('Εισάγετε όνομα');
+  const err=VB(rid,ci,co,1);if(err)return T(err);
+  if(!rid){rid=autoAssign(ci,co,1,sex);if(!rid)return T('Δεν βρέθηκε κατάλληλο δωμάτιο'+(sex?' (έλεγχος φύλου)':''));}
+  MKB(false,name,rid,ci,co,1,[{name,depTime:dt,sex}]);
+  document.getElementById('gn').value='';document.getElementById('dt').value='';document.getElementById('rs').value='';document.getElementById('gsex').value='';
   document.getElementById('indef-s').checked=false;document.getElementById('co').disabled=false;
-  T('✓ '+name+' → Δωμ. '+rid+(indef?' [∞ Αόριστη]':''));RC();RG();US();URS();UGRS();RB();if(openRid)ODR(openRid);SV();
+  T('✓ '+name+(sex?' '+genderIcon(sex):'')+' → Δωμ. '+rid+(indef?' [∞]':''));RC();RG();US();URS();RB();if(openRid)ODR(openRid);SV();
 }
 function ABG(){
   const gname=document.getElementById('ggn').value.trim();const cnt=parseInt(document.getElementById('gc').value)||1;
-  const rid=document.getElementById('grs').value;const ci=document.getElementById('gci').value;
+  let rid=document.getElementById('grs').value;const ci=document.getElementById('gci').value;
   const indef=document.getElementById('indef-g').checked;const co=indef?null:document.getElementById('gco').value;
-  if(!gname)return T('Εισάγετε όνομα γκρουπ');const err=VB(rid,ci,co,cnt);if(err)return T(err);
-  const mems=[];for(let i=0;i<cnt;i++)mems.push({name:(document.getElementById(`gm-n-${i}`)?.value||'').trim(),depTime:document.getElementById(`gm-t-${i}`)?.value||''});
+  if(!gname)return T('Εισάγετε όνομα γκρουπ');
+  const err=VB(rid,ci,co,cnt);if(err)return T(err);
+  const mems=[];
+  for(let i=0;i<cnt;i++)mems.push({name:(document.getElementById(`gm-n-${i}`)?.value||'').trim(),sex:document.getElementById(`gm-g-${i}`)?.value||'',depTime:document.getElementById(`gm-t-${i}`)?.value||''});
+  if(!rid){
+    // Try to find a room that fits all members; use first member's sex as guide if consistent
+    const sexes=[...new Set(mems.map(m=>m.sex).filter(Boolean))];
+    const groupSex=sexes.length===1?sexes[0]:'';
+    rid=autoAssign(ci,co,cnt,groupSex);
+    if(!rid)return T('Δεν βρέθηκε κατάλληλο δωμάτιο για '+cnt+' άτομα'+(groupSex?' (έλεγχος φύλου)':''));
+  }
   MKB(true,gname,rid,ci,co,cnt,mems);
   document.getElementById('ggn').value='';document.getElementById('grs').value='';
   document.getElementById('indef-g').checked=false;document.getElementById('gco').disabled=false;
-  T('✓ Γκρουπ "'+gname+'" → Δωμ. '+rid+(indef?' [∞]':''));RC();RG();US();URS();UGRS();RB();if(openRid)ODR(openRid);SV();
+  T('✓ Γκρουπ "'+gname+'" ('+cnt+' άτ.) → Δωμ. '+rid+(indef?' [∞]':''));RC();RG();US();UGRS();RB();if(openRid)ODR(openRid);SV();
 }
 function ABD(){
-  const name=document.getElementById('bgn').value.trim();const rid=document.getElementById('brs').value;
+  const name=document.getElementById('bgn').value.trim();
+  const sex=document.getElementById('bgsex').value;
+  let rid=document.getElementById('brs').value;
   const ci=document.getElementById('bci').value;const indef=document.getElementById('indef-bs').checked;
   const co=indef?null:document.getElementById('bco').value;const dt=document.getElementById('bdt').value||'';
-  if(!name)return T('Εισάγετε όνομα');const err=VB(rid,ci,co,1);if(err)return T(err);
-  MKB(false,name,rid,ci,co,1,[{name,depTime:dt}]);
-  document.getElementById('bgn').value='';document.getElementById('bdt').value='';
+  if(!name)return T('Εισάγετε όνομα');
+  const err=VB(rid,ci,co,1);if(err)return T(err);
+  if(!rid){rid=autoAssign(ci,co,1,sex);if(!rid)return T('Δεν βρέθηκε κατάλληλο δωμάτιο'+(sex?' (έλεγχος φύλου)':''));}
+  MKB(false,name,rid,ci,co,1,[{name,depTime:dt,sex}]);
+  document.getElementById('bgn').value='';document.getElementById('bdt').value='';document.getElementById('bgsex').value='';
   document.getElementById('indef-bs').checked=false;document.getElementById('bco').disabled=false;
-  T('✓ '+name+' → Δωμ. '+rid+(indef?' [∞]':''));RB();RC();if(selD){RG();US();}if(openRid)ODR(openRid);SV();
+  T('✓ '+name+(sex?' '+genderIcon(sex):'')+' → Δωμ. '+rid+(indef?' [∞]':''));RB();RC();if(selD){RG();US();}if(openRid)ODR(openRid);SV();
 }
 function ABGD(){
   const gname=document.getElementById('bggn').value.trim();const cnt=parseInt(document.getElementById('bgc').value)||1;
-  const rid=document.getElementById('bgrs').value;const ci=document.getElementById('bgci').value;
+  let rid=document.getElementById('bgrs').value;const ci=document.getElementById('bgci').value;
   const indef=document.getElementById('indef-bg').checked;const co=indef?null:document.getElementById('bgco').value;
-  if(!gname)return T('Εισάγετε όνομα γκρουπ');const err=VB(rid,ci,co,cnt);if(err)return T(err);
-  const mems=[];for(let i=0;i<cnt;i++)mems.push({name:(document.getElementById(`bgm-n-${i}`)?.value||'').trim(),depTime:document.getElementById(`bgm-t-${i}`)?.value||''});
+  if(!gname)return T('Εισάγετε όνομα γκρουπ');
+  const err=VB(rid,ci,co,cnt);if(err)return T(err);
+  const mems=[];
+  for(let i=0;i<cnt;i++)mems.push({name:(document.getElementById(`bgm-n-${i}`)?.value||'').trim(),sex:document.getElementById(`bgm-g-${i}`)?.value||'',depTime:document.getElementById(`bgm-t-${i}`)?.value||''});
+  if(!rid){
+    const sexes=[...new Set(mems.map(m=>m.sex).filter(Boolean))];
+    const groupSex=sexes.length===1?sexes[0]:'';
+    rid=autoAssign(ci,co,cnt,groupSex);
+    if(!rid)return T('Δεν βρέθηκε κατάλληλο δωμάτιο για '+cnt+' άτομα'+(groupSex?' (έλεγχος φύλου)':''));
+  }
   MKB(true,gname,rid,ci,co,cnt,mems);
   document.getElementById('bggn').value='';document.getElementById('bgrs').value='';
   document.getElementById('indef-bg').checked=false;document.getElementById('bgco').disabled=false;
@@ -568,8 +633,8 @@ function RG(){
     if(!bks.length)gh='<div class="no-guests">Κανένας πελάτης</div>';
     else bks.forEach(b=>{
       const nd=!b.co;const coT=nd?'<span class="indef-pill" style="font-size:9px">∞</span>':fd(b.co);
-      if(b.isGroup){const named=b.members.filter(m=>m.name);if(named.length){named.forEach(m=>{gh+=`<div class="gi"><span class="gn">${m.name}</span>${m.depTime?`<span class="gt">✈ ${m.depTime}</span>`:''}<span class="gtag" style="background:${b.color}22;color:${b.color}">${b.groupName}</span></div>`;});const an=b.count-named.length;if(an>0)gh+=`<div class="gi"><span class="gn" style="color:#888">+${an} αδήλωτα</span><span class="gtag" style="background:${b.color}22;color:${b.color}">${b.groupName}</span></div>`;}else gh+=`<div class="gi"><span class="gn">${b.groupName}</span>${nd?'<span class="indef-pill" style="font-size:9px">∞</span>':`<span class="gtag" style="background:${b.color}22;color:${b.color}">${b.count} άτ.</span>`}</div>`;}
-      else{const m=b.members[0];gh+=`<div class="gi"><span class="gn">${b.groupName}</span>${m&&m.depTime?`<span class="gt">✈ ${m.depTime}</span>`:''}${coT}</div>`;}
+      if(b.isGroup){const named=b.members.filter(m=>m.name);if(named.length){named.forEach(m=>{const gi=m.sex?`<span style="font-size:10px;color:${m.sex==='M'?'#185FA5':'#993556'}">${m.sex==='M'?'♂':'♀'}</span> `:'';;gh+=`<div class="gi"><span class="gn">${gi}${m.name}</span>${m.depTime?`<span class="gt">✈ ${m.depTime}</span>`:''}<span class="gtag" style="background:${b.color}22;color:${b.color}">${b.groupName}</span></div>`;});const an=b.count-named.length;if(an>0)gh+=`<div class="gi"><span class="gn" style="color:#888">+${an} αδήλωτα</span><span class="gtag" style="background:${b.color}22;color:${b.color}">${b.groupName}</span></div>`;}else gh+=`<div class="gi"><span class="gn">${b.groupName}</span>${nd?'<span class="indef-pill" style="font-size:9px">∞</span>':`<span class="gtag" style="background:${b.color}22;color:${b.color}">${b.count} άτ.</span>`}</div>`;}
+      else{const m=b.members[0];const gi=m&&m.sex?`<span style="font-size:10px;color:${m.sex==='M'?'#185FA5':'#993556'}">${m.sex==='M'?'♂':'♀'}</span> `:'';gh+=`<div class="gi"><span class="gn">${gi}${b.groupName}</span>${m&&m.depTime?`<span class="gt">✈ ${m.depTime}</span>`:''}${coT}</div>`;}
     });
     const card=document.createElement('div');
     card.className='room-card'+(openRid===r.id?' open':'');
@@ -593,13 +658,14 @@ function RB(){
     let mh='';
     if(b.isGroup||hasTm){
       mh='<div class="bc-members">';
-      if(named.length)named.forEach((m,i)=>{mh+=`<div class="bc-member"><span>${i+1}. ${m.name}</span>${m.depTime?`<span class="dep-time">✈ ${m.depTime}</span>`:''}</div>`;});
+      if(named.length)named.forEach((m,i)=>{const gi=m.sex?`<span style="color:${m.sex==='M'?'#185FA5':'#993556'}">${m.sex==='M'?'♂':'♀'}</span> `:'';mh+=`<div class="bc-member"><span>${i+1}. ${gi}${m.name}</span>${m.depTime?`<span class="dep-time">✈ ${m.depTime}</span>`:''}</div>`;});
       else if(!b.isGroup&&hasTm){const m=b.members[0];if(m?.depTime)mh+=`<div class="bc-member"><span>${b.groupName}</span><span class="dep-time">✈ ${m.depTime}</span></div>`;}
       if(anon>0&&b.isGroup)mh+=`<div class="bc-member" style="color:#aaa">+${anon} αδήλωτα μέλη</div>`;
       mh+='</div>';
     }
+    const singleSex=!b.isGroup&&b.members[0]?.sex?`<span style="color:${b.members[0].sex==='M'?'#185FA5':'#993556'};margin-right:3px">${b.members[0].sex==='M'?'♂':'♀'}</span>`:'';
     const card=document.createElement('div');card.className='booking-card'+(indef?' indef-card':'');
-    card.innerHTML=`<div class="bc-header"><div class="bc-dot" style="background:${b.color}"></div><div class="bc-title"><div class="bc-name">${b.groupName}${gb}</div><div class="bc-meta">Δωμ. ${b.roomId} &nbsp;·&nbsp; ${fd(b.ci)} → ${coDisp}</div></div><div class="bc-actions"><button class="btn warning" onclick="openEdit(${b.id})">Επεξεργασία</button><button class="btn danger" onclick="RMV(${b.id})">Διαγραφή</button></div></div>${mh}`;
+    card.innerHTML=`<div class="bc-header"><div class="bc-dot" style="background:${b.color}"></div><div class="bc-title"><div class="bc-name">${singleSex}${b.groupName}${gb}</div><div class="bc-meta">Δωμ. ${b.roomId} &nbsp;·&nbsp; ${fd(b.ci)} → ${coDisp}</div></div><div class="bc-actions"><button class="btn warning" onclick="openEdit(${b.id})">Επεξεργασία</button><button class="btn danger" onclick="RMV(${b.id})">Διαγραφή</button></div></div>${mh}`;
     list.appendChild(card);
   });
 }
