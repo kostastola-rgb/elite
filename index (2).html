@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>💌 Important Question...</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ============================================
+       CSS VARIABLES & RESET
+    ============================================ */
+    :root {
+      --pink-light: #fde8f0;
+      --pink-mid:   #f9b8d0;
+      --pink-hot:   #f06292;
+      --pink-deep:  #e91e8c;
+      --peach:      #ffd6c0;
+      --lavender:   #e8d5f5;
+      --cream:      #fff9f5;
+      --text-dark:  #2d1b2e;
+      --text-mid:   #6d3b6e;
+      --text-soft:  #a07aa0;
+      --white:      #ffffff;
+      --radius-lg:  24px;
+      --radius-xl:  40px;
+      --shadow-soft: 0 8px 40px rgba(240, 98, 146, 0.18);
+      --shadow-card: 0 4px 24px rgba(45, 27, 46, 0.10);
+      --transition: cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--text-dark);
+      min-height: 100vh;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* ============================================
+       LANGUAGE SWITCHER
+    ============================================ */
+    #langSwitcher {
+      position: fixed;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9500;
+      display: flex;
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(10px);
+      border-radius: 100px;
+      padding: 4px;
+      box-shadow: var(--shadow-card);
+      gap: 2px;
+    }
+    .lang-btn {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: .06em;
+      padding: 7px 18px;
+      border: none;
+      border-radius: 100px;
+      cursor: pointer;
+      background: transparent;
+      color: var(--text-soft);
+      transition: background .22s, color .22s, transform .22s var(--transition);
+    }
+    .lang-btn.active {
+      background: linear-gradient(135deg, var(--pink-hot), var(--pink-deep));
+      color: white;
+      transform: scale(1.04);
+    }
+    .lang-btn:hover:not(.active) { background: var(--pink-light); color: var(--text-mid); }
+
+    /* ============================================
+       CUSTOM CURSOR
+    ============================================ */
+    #cursor {
+      position: fixed;
+      width: 18px; height: 18px;
+      background: var(--pink-hot);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: width .2s, height .2s, background .2s;
+      mix-blend-mode: multiply;
+    }
+    #cursor.big { width: 36px; height: 36px; background: var(--pink-mid); }
+
+    /* ============================================
+       ANIMATED BACKGROUND BLOBS
+    ============================================ */
+    .bg-blobs { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+    .blob { position: absolute; border-radius: 50%; filter: blur(60px); opacity: 0.45; animation: blobFloat 12s ease-in-out infinite alternate; }
+    .blob-1 { width: 500px; height: 500px; background: var(--pink-mid);  top: -120px; left: -100px; animation-delay: 0s; }
+    .blob-2 { width: 380px; height: 380px; background: var(--lavender);  bottom: -80px; right: -60px; animation-delay: -4s; }
+    .blob-3 { width: 280px; height: 280px; background: var(--peach);     top: 40%; left: 55%; animation-delay: -8s; }
+
+    @keyframes blobFloat {
+      0%   { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(30px, 25px) scale(1.08); }
+    }
+
+    /* ============================================
+       HEART PARTICLE CANVAS
+    ============================================ */
+    #heartCanvas { position: fixed; inset: 0; pointer-events: none; z-index: 1; }
+
+    /* ============================================
+       SCREENS
+    ============================================ */
+    .screen {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(30px) scale(0.97);
+      transition: opacity .55s ease, transform .55s var(--transition);
+    }
+    .screen.active  { opacity: 1; pointer-events: all; transform: translateY(0) scale(1); }
+    .screen.exit    { opacity: 0; transform: translateY(-30px) scale(0.97); pointer-events: none; }
+
+    /* ============================================
+       CARD
+    ============================================ */
+    .card {
+      background: rgba(255,255,255,0.78);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1.5px solid rgba(255,255,255,0.9);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-soft);
+      padding: 52px 44px 44px;
+      width: 100%;
+      max-width: 520px;
+      text-align: center;
+      position: relative;
+    }
+
+    /* ============================================
+       TYPOGRAPHY
+    ============================================ */
+    .headline {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.85rem, 6vw, 2.7rem);
+      font-weight: 700;
+      color: var(--text-dark);
+      line-height: 1.22;
+      margin-bottom: 10px;
+    }
+    .headline em { font-style: italic; color: var(--pink-deep); }
+    .subtitle { font-size: 1rem; color: var(--text-soft); font-weight: 400; margin-bottom: 36px; }
+    .funny-label {
+      font-size: 0.78rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+      color: var(--pink-hot); background: var(--pink-light); border-radius: 100px;
+      padding: 4px 14px; display: inline-block; margin-bottom: 18px;
+    }
+
+    /* ============================================
+       BUTTONS
+    ============================================ */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      font-family: 'DM Sans', sans-serif; font-size: 1.05rem; font-weight: 600;
+      border: none; border-radius: 100px; padding: 15px 36px;
+      cursor: pointer; transition: transform .22s var(--transition), box-shadow .22s ease, background .2s;
+      text-decoration: none; white-space: nowrap;
+    }
+    .btn:active { transform: scale(0.94); }
+
+    .btn-yes {
+      background: linear-gradient(135deg, var(--pink-hot), var(--pink-deep));
+      color: white; box-shadow: 0 6px 24px rgba(240,98,146,0.38);
+      font-size: 1.15rem; padding: 18px 44px;
+    }
+    .btn-yes:hover { transform: scale(1.06); box-shadow: 0 10px 32px rgba(240,98,146,0.48); }
+
+    .btn-no {
+      background: var(--pink-light); color: var(--text-mid);
+      position: fixed; z-index: 9000; transition: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--pink-hot), var(--pink-deep));
+      color: white; box-shadow: 0 6px 24px rgba(240,98,146,0.35); width: 100%;
+    }
+    .btn-primary:hover { transform: scale(1.03); box-shadow: 0 10px 32px rgba(240,98,146,0.45); }
+    .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    .btn-secondary {
+      background: var(--white); color: var(--text-mid);
+      border: 1.5px solid var(--pink-mid); margin-top: 12px; width: 100%;
+    }
+    .btn-secondary:hover { background: var(--pink-light); transform: scale(1.02); }
+
+    /* ============================================
+       SCREEN 1 — WELCOME
+    ============================================ */
+    .welcome-emoji {
+      font-size: 3.2rem; display: block; margin-bottom: 16px;
+      animation: heartBeat 1.8s ease-in-out infinite;
+    }
+    @keyframes heartBeat {
+      0%, 100% { transform: scale(1); }
+      14% { transform: scale(1.14); }
+      28% { transform: scale(1); }
+      42% { transform: scale(1.08); }
+      56% { transform: scale(1); }
+    }
+    .btn-row { display: flex; gap: 14px; justify-content: center; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+
+    /* Floating escape messages */
+    .fly-text {
+      position: fixed; font-size: 0.88rem; font-weight: 600;
+      color: var(--pink-hot); background: white; padding: 6px 14px;
+      border-radius: 100px; box-shadow: var(--shadow-card);
+      pointer-events: none; z-index: 9998;
+      animation: flyUp .9s forwards ease-out;
+    }
+    @keyframes flyUp {
+      0%   { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(-50px); }
+    }
+
+    /* ============================================
+       SCREEN 2 — DATETIME
+    ============================================ */
+    .datetime-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 24px 0 30px; }
+    .picker-group { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+    .picker-label { font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--text-soft); }
+    .picker-group input {
+      width: 100%; padding: 12px 16px; border: 1.5px solid var(--pink-mid);
+      border-radius: 14px; font-family: 'DM Sans', sans-serif; font-size: 0.95rem;
+      color: var(--text-dark); background: var(--cream); outline: none;
+      transition: border-color .2s, box-shadow .2s; cursor: pointer;
+    }
+    .picker-group input:focus { border-color: var(--pink-hot); box-shadow: 0 0 0 3px rgba(240,98,146,0.14); }
+
+    /* ============================================
+       SCREEN 3 — DATE TYPE
+    ============================================ */
+    .options-scroll { max-height: 54vh; overflow-y: auto; padding-right: 4px; margin: 0 -4px; }
+    .options-scroll::-webkit-scrollbar { width: 4px; }
+    .options-scroll::-webkit-scrollbar-thumb { background: var(--pink-mid); border-radius: 4px; }
+
+    .section-label {
+      font-size: 0.72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--text-soft); text-align: left; margin: 18px 0 8px;
+    }
+    .section-label:first-child { margin-top: 0; }
+
+    .options-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+    .option-card {
+      background: var(--cream); border: 2px solid transparent;
+      border-radius: 18px; padding: 14px 10px;
+      cursor: pointer; transition: all .2s var(--transition);
+      text-align: center; user-select: none;
+    }
+    .option-card:hover { background: var(--pink-light); transform: scale(1.04); }
+    .option-card.selected {
+      background: var(--pink-light); border-color: var(--pink-hot);
+      box-shadow: 0 4px 14px rgba(240,98,146,0.22); transform: scale(1.04);
+    }
+    .option-emoji { font-size: 1.8rem; display: block; margin-bottom: 5px; }
+    .option-name  { font-size: 0.82rem; font-weight: 600; color: var(--text-dark); }
+
+    /* ============================================
+       SCREEN 4 — FINAL
+    ============================================ */
+    .final-emoji { font-size: 3.6rem; display: block; margin-bottom: 14px; animation: popIn .6s var(--transition) both; }
+    @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+    .summary-box { background: var(--pink-light); border-radius: 18px; padding: 20px 22px; margin: 22px 0 26px; text-align: left; }
+    .summary-row { display: flex; align-items: flex-start; gap: 10px; font-size: 0.92rem; color: var(--text-dark); padding: 6px 0; border-bottom: 1px solid rgba(240,98,146,0.15); }
+    .summary-row:last-child { border-bottom: none; }
+    .summary-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+    .summary-text strong { display: block; font-weight: 700; font-size: 0.78rem; text-transform: uppercase; letter-spacing:.06em; color: var(--text-soft); margin-bottom: 2px; }
+
+    /* Floating hearts */
+    .floating-heart {
+      position: fixed; font-size: 1.4rem; pointer-events: none; z-index: 5000;
+      animation: floatHeart linear forwards;
+    }
+    @keyframes floatHeart {
+      0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(-90vh) rotate(20deg); opacity: 0; }
+    }
+
+    /* ============================================
+       CONFETTI CANVAS
+    ============================================ */
+    #confettiCanvas { position: fixed; inset: 0; pointer-events: none; z-index: 4000; }
+
+    /* ============================================
+       MUSIC TOGGLE
+    ============================================ */
+    #musicBtn {
+      position: fixed; bottom: 22px; right: 22px; z-index: 9000;
+      width: 46px; height: 46px; border-radius: 50%; border: none;
+      background: rgba(255,255,255,0.85); backdrop-filter: blur(8px);
+      box-shadow: var(--shadow-card); font-size: 1.3rem; cursor: pointer;
+      transition: transform .2s var(--transition);
+      display: flex; align-items: center; justify-content: center;
+    }
+    #musicBtn:hover { transform: scale(1.12); }
+
+    /* ============================================
+       STEP INDICATOR
+    ============================================ */
+    .steps { display: flex; justify-content: center; gap: 6px; margin-bottom: 28px; }
+    .step-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--pink-mid); transition: background .3s, width .3s; }
+    .step-dot.active { background: var(--pink-hot); width: 20px; border-radius: 4px; }
+
+    /* Typewriter cursor */
+    .type-cursor { animation: blink .7s steps(1) infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    /* ============================================
+       MOBILE TWEAKS
+    ============================================ */
+    @media (max-width: 520px) {
+      .card { padding: 36px 22px 32px; }
+      .datetime-grid { grid-template-columns: 1fr; }
+      .options-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 380px) {
+      .options-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Custom cursor -->
+<div id="cursor"></div>
+
+<!-- Language switcher -->
+<div id="langSwitcher">
+  <button class="lang-btn active" id="btnEN" onclick="setLang('en')">🇬🇧 EN</button>
+  <button class="lang-btn"        id="btnGR" onclick="setLang('gr')">🇬🇷 ΕΛ</button>
+</div>
+
+<!-- Animated background -->
+<div class="bg-blobs">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+</div>
+
+<!-- Heart particle canvas (cursor trail) -->
+<canvas id="heartCanvas"></canvas>
+
+<!-- Confetti canvas -->
+<canvas id="confettiCanvas"></canvas>
+
+<!-- Music button -->
+<button id="musicBtn" title="Toggle music" aria-label="Toggle music">🎵</button>
+
+<!-- ==================== SCREEN 1: WELCOME ==================== -->
+<div id="screen1" class="screen active">
+  <div class="card">
+    <span class="welcome-emoji">💌</span>
+    <span class="funny-label" id="s1-label">Important Question</span>
+    <h1 class="headline" id="s1-headline">Will you go on a<br /><em>date</em> with me? ❤️</h1>
+    <p class="subtitle" id="s1-subtitle">Choose wisely 😌</p>
+    <div class="btn-row">
+      <button class="btn btn-yes" id="yesBtn" onclick="goToScreen2()" id="s1-yes">Yes 💖</button>
+      <!-- No button is injected by JS so it can roam freely -->
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SCREEN 2: DATETIME ==================== -->
+<div id="screen2" class="screen">
+  <div class="card">
+    <div class="steps">
+      <div class="step-dot active"></div>
+      <div class="step-dot"></div>
+      <div class="step-dot"></div>
+    </div>
+    <span style="font-size:2.4rem;display:block;margin-bottom:12px">🥳</span>
+    <h1 class="headline" id="yayHeadline">YAYYY!</h1>
+    <p class="subtitle" id="s2-subtitle">Now pick when our legendary date happens</p>
+    <div class="datetime-grid">
+      <div class="picker-group">
+        <span class="picker-label" id="s2-datelabel">📅 Date</span>
+        <input type="date" id="dateInput" />
+      </div>
+      <div class="picker-group">
+        <span class="picker-label" id="s2-timelabel">⏰ Time</span>
+        <input type="time" id="timeInput" />
+      </div>
+    </div>
+    <button class="btn btn-primary" id="continueBtn1" onclick="goToScreen3()" disabled id="s2-cta">
+      Let's plan it! 🗓️
+    </button>
+  </div>
+</div>
+
+<!-- ==================== SCREEN 3: DATE TYPE ==================== -->
+<div id="screen3" class="screen">
+  <div class="card">
+    <div class="steps">
+      <div class="step-dot"></div>
+      <div class="step-dot active"></div>
+      <div class="step-dot"></div>
+    </div>
+    <h1 class="headline" style="font-size:clamp(1.5rem,5vw,2.1rem)" id="s3-headline">What kind of date<br/><em>should we go on?</em></h1>
+    <p class="subtitle" id="s3-subtitle">Pick as many as you want ✨</p>
+    <div class="options-scroll">
+      <div class="section-label" id="s3-foodlabel">🍽️ Food Vibes</div>
+      <div class="options-grid" id="foodGrid"></div>
+      <div class="section-label" id="s3-actlabel">🎉 Activities</div>
+      <div class="options-grid" id="actGrid"></div>
+    </div>
+    <button class="btn btn-primary" id="continueBtn2" onclick="goToScreen4()" style="margin-top:18px" id="s3-cta">
+      Make it official 💕
+    </button>
+    <button class="btn btn-secondary" id="s3-back" onclick="goToScreen2()">← Back</button>
+  </div>
+</div>
+
+<!-- ==================== SCREEN 4: FINAL ==================== -->
+<div id="screen4" class="screen">
+  <div class="card">
+    <span class="final-emoji">🎉</span>
+    <h1 class="headline" id="s4-headline"><em>Perfect.</em><br/>It's officially a date!</h1>
+    <p class="subtitle" id="s4-subtitle" style="margin-bottom:0">Here's what we're doing 🧡</p>
+    <div class="summary-box" id="summaryBox"></div>
+    <button class="btn btn-yes" onclick="cantWait()" style="width:100%;margin-top:4px" id="s4-cta">Can't wait 😊</button>
+  </div>
+</div>
+
+<script>
+/* ============================================
+   TRANSLATIONS
+============================================ */
+const translations = {
+  en: {
+    pageTitle:      '💌 Important Question...',
+    's1-label':     'Important Question',
+    's1-headline':  'Will you go on a\n<em>date</em> with me? ❤️',
+    's1-subtitle':  'Choose wisely 😌',
+    's1-yes':       'Yes 💖',
+    's1-no':        'No 😅',
+    's2-subtitle':  'Now pick when our legendary date happens',
+    's2-datelabel': '📅 Date',
+    's2-timelabel': '⏰ Time',
+    's2-cta':       "Let's plan it! 🗓️",
+    's3-headline':  'What kind of date\n<em>should we go on?</em>',
+    's3-subtitle':  'Pick as many as you want ✨',
+    's3-foodlabel': '🍽️ Food Vibes',
+    's3-actlabel':  '🎉 Activities',
+    's3-cta':       'Make it official 💕',
+    's3-back':      '← Back',
+    's4-headline':  '<em>Perfect.</em>\nIt\'s officially a date!',
+    's4-subtitle':  "Here's what we're doing 🧡",
+    's4-cta':       "Can't wait 😊",
+    'sum-date':     'Date',
+    'sum-time':     'Time',
+    'sum-plans':    'Plans',
+    'sum-surprise': 'Surprise me! 🎉',
+    'yay':          'YAYYY! 🥳',
+    noMessages: [
+      "Nice try 😏", "That's illegal 🚫", "You meant Yes 😇",
+      "No is under maintenance 🔧", "Error 404: No not found",
+      "Button says no to No 💅", "Wrong button bestie",
+      "Try the pink one 💖", "This button retired 🏖️", "Lol nope 😂"
+    ],
+    foodOptions: [
+      { emoji: '🍕', name: 'Pizza Date' },
+      { emoji: '🍣', name: 'Sushi Night' },
+      { emoji: '🍔', name: 'Burgers' },
+      { emoji: '☕', name: 'Coffee & Dessert' },
+      { emoji: '🍝', name: 'Fancy Dinner' },
+    ],
+    actOptions: [
+      { emoji: '🎳', name: 'Bowling' },
+      { emoji: '🎬', name: 'Movie Night' },
+      { emoji: '🎡', name: 'Amusement Park' },
+      { emoji: '🚶', name: 'Sunset Walk' },
+      { emoji: '🎨', name: 'Art / Museum' },
+      { emoji: '🎮', name: 'Arcade' },
+    ],
+    dateLocale: 'en-US',
+    timeLocale: 'en-US',
+  },
+  gr: {
+    pageTitle:      '💌 Σημαντική Ερώτηση...',
+    's1-label':     'Σημαντική Ερώτηση',
+    's1-headline':  'Θέλεις να βγούμε σε\n<em>ραντεβού</em>; ❤️',
+    's1-subtitle':  'Επέλεξε προσεκτικά 😌',
+    's1-yes':       'Ναι 💖',
+    's1-no':        'Όχι 😅',
+    's2-subtitle':  'Τώρα διάλεξε πότε θα γίνει το θρυλικό μας ραντεβού',
+    's2-datelabel': '📅 Ημερομηνία',
+    's2-timelabel': '⏰ Ώρα',
+    's2-cta':       'Ας το σχεδιάσουμε! 🗓️',
+    's3-headline':  'Τι είδους ραντεβού\n<em>να κάνουμε;</em>',
+    's3-subtitle':  'Διάλεξε όσα θέλεις ✨',
+    's3-foodlabel': '🍽️ Φαγητό',
+    's3-actlabel':  '🎉 Δραστηριότητες',
+    's3-cta':       'Είναι επίσημο! 💕',
+    's3-back':      '← Πίσω',
+    's4-headline':  '<em>Τέλειο.</em>\nΕίναι επίσημα ραντεβού!',
+    's4-subtitle':  'Να τι θα κάνουμε 🧡',
+    's4-cta':       'Ανυπομονώ! 😊',
+    'sum-date':     'Ημερομηνία',
+    'sum-time':     'Ώρα',
+    'sum-plans':    'Σχέδια',
+    'sum-surprise': 'Έκπληξη! 🎉',
+    'yay':          'ΝΑΑΑΙ! 🥳',
+    noMessages: [
+      'Καλή προσπάθεια 😏', 'Αυτό είναι παράνομο 🚫', 'Εννοούσες Ναι 😇',
+      'Το κουμπί είναι υπό συντήρηση 🔧', 'Σφάλμα 404: Δεν βρέθηκε',
+      'Το κουμπί αρνείται 💅', 'Λάθος κουμπί φιλενάδα',
+      'Δοκίμασε το ροζ 💖', 'Αυτό το κουμπί συνταξιοδοτήθηκε 🏖️', 'Χαχα όχι 😂'
+    ],
+    foodOptions: [
+      { emoji: '🍕', name: 'Πίτσα' },
+      { emoji: '🍣', name: 'Σούσι' },
+      { emoji: '🍔', name: 'Μπέργκερ' },
+      { emoji: '☕', name: 'Καφές & Γλυκό' },
+      { emoji: '🍝', name: 'Φανταστικό Δείπνο' },
+    ],
+    actOptions: [
+      { emoji: '🎳', name: 'Bowling' },
+      { emoji: '🎬', name: 'Σινεμά' },
+      { emoji: '🎡', name: 'Λούνα Παρκ' },
+      { emoji: '🚶', name: 'Βόλτα στο Ηλιοβασίλεμα' },
+      { emoji: '🎨', name: 'Μουσείο / Τέχνη' },
+      { emoji: '🎮', name: 'Arcade' },
+    ],
+    dateLocale: 'el-GR',
+    timeLocale: 'el-GR',
+  }
+};
+
+/* ============================================
+   LANGUAGE STATE
+============================================ */
+let currentLang = 'en';
+
+function setLang(lang) {
+  currentLang = lang;
+  const t = translations[lang];
+
+  // Toggle active button
+  document.getElementById('btnEN').classList.toggle('active', lang === 'en');
+  document.getElementById('btnGR').classList.toggle('active', lang === 'gr');
+
+  // Update page title
+  document.title = t.pageTitle;
+
+  // Update all translatable text nodes
+  const ids = ['s1-label','s1-subtitle','s2-subtitle','s2-datelabel','s2-timelabel',
+                's2-cta','s3-subtitle','s3-foodlabel','s3-actlabel','s3-cta','s3-back',
+                's4-subtitle','s4-cta'];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = t[id];
+  });
+
+  // Headlines with inner HTML (em tags)
+  const htmlIds = ['s1-headline','s3-headline','s4-headline'];
+  htmlIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = t[id].replace(/\n/g, '<br/>');
+  });
+
+  // Yes button
+  document.getElementById('yesBtn').textContent = t['s1-yes'];
+
+  // No button text
+  noBtn.textContent = t['s1-no'];
+
+  // Rebuild option cards
+  rebuildOptionCards();
+
+  // If on screen 4, rebuild summary with new locale
+  if (document.getElementById('screen4').classList.contains('active')) {
+    buildSummary();
+  }
+
+  // Save preference
+  try { localStorage.setItem('dateInviteLang', lang); } catch(e) {}
+}
+
+/* ============================================
+   STATE
+============================================ */
+const state = {
+  date: '',
+  time: '',
+  picks: [],
+};
+
+/* ============================================
+   CUSTOM CURSOR
+============================================ */
+const cursor = document.getElementById('cursor');
+document.addEventListener('mousemove', e => {
+  cursor.style.left = e.clientX + 'px';
+  cursor.style.top  = e.clientY + 'px';
+});
+document.querySelectorAll('button, input, .option-card').forEach(el => {
+  el.addEventListener('mouseenter', () => cursor.classList.add('big'));
+  el.addEventListener('mouseleave', () => cursor.classList.remove('big'));
+});
+
+/* ============================================
+   HEART PARTICLE TRAIL
+============================================ */
+const heartCanvas = document.getElementById('heartCanvas');
+const hCtx = heartCanvas.getContext('2d');
+let hearts = [];
+
+function resizeHeartCanvas() {
+  heartCanvas.width  = window.innerWidth;
+  heartCanvas.height = window.innerHeight;
+}
+resizeHeartCanvas();
+window.addEventListener('resize', resizeHeartCanvas);
+
+document.addEventListener('mousemove', e => {
+  if (Math.random() > 0.55) return;
+  hearts.push({ x: e.clientX, y: e.clientY, size: 8 + Math.random()*10,
+    alpha: 1, vx: (Math.random()-.5)*1.2, vy: -1 - Math.random()*1.5 });
+});
+
+function drawHeartPath(ctx, x, y, size) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(size / 30, size / 30);
+  ctx.beginPath();
+  ctx.moveTo(0, -8);
+  ctx.bezierCurveTo(10, -20, 28, -10, 0, 10);
+  ctx.bezierCurveTo(-28, -10, -10, -20, 0, -8);
+  ctx.restore();
+}
+
+function animateHearts() {
+  hCtx.clearRect(0, 0, heartCanvas.width, heartCanvas.height);
+  hearts = hearts.filter(h => h.alpha > 0.02);
+  hearts.forEach(h => {
+    h.x += h.vx; h.y += h.vy; h.alpha -= 0.022; h.size *= 0.99;
+    hCtx.save();
+    hCtx.globalAlpha = h.alpha;
+    hCtx.fillStyle = `hsl(${330 + Math.random()*20}, 90%, 65%)`;
+    drawHeartPath(hCtx, h.x, h.y, h.size);
+    hCtx.fill();
+    hCtx.restore();
+  });
+  requestAnimationFrame(animateHearts);
+}
+animateHearts();
+
+/* ============================================
+   SCREEN TRANSITIONS
+============================================ */
+function showScreen(nextId) {
+  const current = document.querySelector('.screen.active');
+  const next    = document.getElementById(nextId);
+  if (current) {
+    current.classList.add('exit');
+    setTimeout(() => current.classList.remove('active', 'exit'), 600);
+  }
+  setTimeout(() => next.classList.add('active'), current ? 200 : 0);
+}
+
+/* ============================================
+   NO BUTTON — the escape artist 🏃
+============================================ */
+let msgIndex = 0;
+
+const noBtn = document.createElement('button');
+noBtn.className = 'btn btn-no';
+noBtn.textContent = 'No 😅';
+noBtn.id = 'noBtn';
+document.body.appendChild(noBtn);
+
+function placeNoBtn() {
+  const margin = 100;
+  const maxX = window.innerWidth  - noBtn.offsetWidth  - margin;
+  const maxY = window.innerHeight - noBtn.offsetHeight - margin;
+  const x = margin + Math.random() * maxX;
+  const y = margin + Math.random() * maxY;
+  noBtn.style.left = x + 'px';
+  noBtn.style.top  = y + 'px';
+}
+
+setTimeout(() => {
+  noBtn.style.left = (window.innerWidth / 2 + 90) + 'px';
+  noBtn.style.top  = (window.innerHeight / 2 + 30) + 'px';
+}, 50);
+
+function showFlyMessage(x, y) {
+  const msgs = translations[currentLang].noMessages;
+  const msg = document.createElement('div');
+  msg.className = 'fly-text';
+  msg.textContent = msgs[msgIndex % msgs.length];
+  msgIndex++;
+  msg.style.left = x + 'px';
+  msg.style.top  = y + 'px';
+  document.body.appendChild(msg);
+  setTimeout(() => msg.remove(), 950);
+}
+
+function escapeNo(clientX, clientY) {
+  showFlyMessage(clientX, clientY - 30);
+  placeNoBtn();
+}
+
+// Desktop: flee on proximity
+document.addEventListener('mousemove', e => {
+  if (!document.getElementById('screen1').classList.contains('active')) return;
+  const rect = noBtn.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top  + rect.height / 2;
+  if (Math.hypot(e.clientX - cx, e.clientY - cy) < 80) escapeNo(e.clientX, e.clientY);
+});
+
+// Mobile: flee on tap
+noBtn.addEventListener('click', e => { e.preventDefault(); escapeNo(e.clientX, e.clientY); });
+noBtn.addEventListener('touchstart', e => {
+  e.preventDefault();
+  const t = e.touches[0];
+  escapeNo(t.clientX, t.clientY);
+});
+
+function updateNoBtn() {
+  const on1 = document.getElementById('screen1').classList.contains('active');
+  noBtn.style.display = on1 ? 'flex' : 'none';
+}
+
+/* ============================================
+   CONFETTI
+============================================ */
+const confCanvas = document.getElementById('confettiCanvas');
+const cCtx = confCanvas.getContext('2d');
+let confettis = [];
+
+function launchConfetti() {
+  confCanvas.width  = window.innerWidth;
+  confCanvas.height = window.innerHeight;
+  for (let i = 0; i < 180; i++) {
+    confettis.push({
+      x: Math.random() * confCanvas.width,
+      y: -10 - Math.random() * 200,
+      size: 6 + Math.random() * 8,
+      color: ['#f06292','#ce93d8','#ffb74d','#4dd0e1','#aed581','#f48fb1'][Math.floor(Math.random()*6)],
+      angle: Math.random() * Math.PI * 2,
+      spin:  (Math.random()-.5)*.18,
+      vx: (Math.random()-.5)*3,
+      vy: 2 + Math.random()*3,
+      alpha: 1,
+    });
+  }
+  animateConfetti();
+}
+
+function animateConfetti() {
+  if (!confettis.length) return;
+  cCtx.clearRect(0, 0, confCanvas.width, confCanvas.height);
+  confettis = confettis.filter(c => c.y < confCanvas.height + 20);
+  confettis.forEach(c => {
+    c.x += c.vx; c.y += c.vy; c.angle += c.spin; c.vy += 0.04;
+    cCtx.save();
+    cCtx.translate(c.x, c.y);
+    cCtx.rotate(c.angle);
+    cCtx.fillStyle = c.color;
+    cCtx.globalAlpha = Math.min(c.alpha, 1);
+    cCtx.fillRect(-c.size/2, -c.size/4, c.size, c.size/2);
+    cCtx.restore();
+  });
+  if (confettis.length) requestAnimationFrame(animateConfetti);
+  else cCtx.clearRect(0, 0, confCanvas.width, confCanvas.height);
+}
+
+/* ============================================
+   FLOATING HEARTS
+============================================ */
+function launchFloatingHearts() {
+  const emojis = ['❤️','💕','💗','💖','🩷','💘','💝'];
+  for (let i = 0; i < 22; i++) {
+    setTimeout(() => {
+      const h = document.createElement('div');
+      h.className = 'floating-heart';
+      h.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+      h.style.left = Math.random()*96 + 'vw';
+      h.style.bottom = '-40px';
+      h.style.animationDuration = (5 + Math.random()*6) + 's';
+      h.style.fontSize = (.9 + Math.random()*1.4) + 'rem';
+      document.body.appendChild(h);
+      setTimeout(() => h.remove(), 12000);
+    }, i * 280);
+  }
+}
+
+/* ============================================
+   TYPEWRITER EFFECT
+============================================ */
+function typewrite(el, text, speed=55) {
+  el.textContent = '';
+  let i = 0;
+  const span = document.createElement('span');
+  span.className = 'type-cursor';
+  span.textContent = '|';
+  el.appendChild(span);
+  const interval = setInterval(() => {
+    if (i < text.length) {
+      el.insertBefore(document.createTextNode(text[i]), span);
+      i++;
+    } else {
+      clearInterval(interval);
+      setTimeout(() => span.remove(), 600);
+    }
+  }, speed);
+}
+
+/* ============================================
+   OPTION CARDS — language-aware
+============================================ */
+function rebuildOptionCards() {
+  const t = translations[currentLang];
+
+  // Clear grids
+  const foodGrid = document.getElementById('foodGrid');
+  const actGrid  = document.getElementById('actGrid');
+  foodGrid.innerHTML = '';
+  actGrid.innerHTML  = '';
+
+  // Remember current picks by emoji (language-neutral key)
+  const pickedEmojis = new Set(state.pickedEmojis || []);
+
+  function buildCards(items, grid) {
+    items.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'option-card';
+      if (pickedEmojis.has(item.emoji)) card.classList.add('selected');
+      card.innerHTML = `<span class="option-emoji">${item.emoji}</span><span class="option-name">${item.name}</span>`;
+      card.dataset.emoji = item.emoji;
+      card.dataset.name  = item.name;
+      card.addEventListener('click', () => {
+        card.classList.toggle('selected');
+        if (!state.pickedEmojis) state.pickedEmojis = [];
+        const idx = state.pickedEmojis.indexOf(item.emoji);
+        if (idx === -1) {
+          state.pickedEmojis.push(item.emoji);
+          state.picks.push(item.name);
+        } else {
+          state.pickedEmojis.splice(idx, 1);
+          // Remove old name (any language) and add current
+          const nameIdx = state.picks.findIndex(n => {
+            return Object.values(translations).some(tr =>
+              tr.foodOptions?.find(f => f.emoji === item.emoji && f.name === n) ||
+              tr.actOptions?.find(a => a.emoji === item.emoji && a.name === n)
+            );
+          });
+          if (nameIdx > -1) state.picks.splice(nameIdx, 1);
+        }
+      });
+      grid.appendChild(card);
+    });
+  }
+
+  buildCards(t.foodOptions, foodGrid);
+  buildCards(t.actOptions,  actGrid);
+
+  // Re-sync cursor hover effect on new cards
+  document.querySelectorAll('.option-card').forEach(el => {
+    el.addEventListener('mouseenter', () => cursor.classList.add('big'));
+    el.addEventListener('mouseleave', () => cursor.classList.remove('big'));
+  });
+}
+
+/* ============================================
+   DATETIME VALIDATION
+============================================ */
+const dateInput = document.getElementById('dateInput');
+const timeInput = document.getElementById('timeInput');
+const continueBtn1 = document.getElementById('continueBtn1');
+
+const today = new Date().toISOString().split('T')[0];
+dateInput.min = today;
+
+function checkDatetime() {
+  continueBtn1.disabled = !(dateInput.value && timeInput.value);
+  state.date = dateInput.value;
+  state.time = timeInput.value;
+}
+dateInput.addEventListener('change', checkDatetime);
+timeInput.addEventListener('change', checkDatetime);
+
+/* ============================================
+   NAVIGATION
+============================================ */
+function goToScreen2() {
+  showScreen('screen2');
+  updateNoBtn();
+  setTimeout(() => typewrite(document.getElementById('yayHeadline'), translations[currentLang].yay), 400);
+}
+
+function goToScreen3() {
+  if (!dateInput.value || !timeInput.value) return;
+  showScreen('screen3');
+  updateNoBtn();
+}
+
+function goToScreen4() {
+  // Sync picks names in current language before building summary
+  syncPickNames();
+  buildSummary();
+  showScreen('screen4');
+  updateNoBtn();
+  setTimeout(() => { launchConfetti(); launchFloatingHearts(); }, 500);
+  try { localStorage.setItem('dateInvite', JSON.stringify(state)); } catch(e) {}
+}
+
+function cantWait() { launchConfetti(); launchFloatingHearts(); }
+
+/* Keep pick names in sync with current language */
+function syncPickNames() {
+  const t = translations[currentLang];
+  const allOptions = [...(t.foodOptions || []), ...(t.actOptions || [])];
+  state.picks = (state.pickedEmojis || []).map(emoji => {
+    const match = allOptions.find(o => o.emoji === emoji);
+    return match ? match.name : emoji;
+  });
+}
+
+/* ============================================
+   SUMMARY BOX
+============================================ */
+function buildSummary() {
+  const t   = translations[currentLang];
+  const box = document.getElementById('summaryBox');
+
+  let prettyDate = state.date;
+  try {
+    prettyDate = new Date(state.date + 'T12:00:00').toLocaleDateString(t.dateLocale,
+      { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  } catch(e) {}
+
+  let prettyTime = state.time;
+  try {
+    const [h, m] = state.time.split(':');
+    const dt = new Date(); dt.setHours(h, m);
+    prettyTime = dt.toLocaleTimeString(t.timeLocale, { hour:'numeric', minute:'2-digit' });
+  } catch(e) {}
+
+  syncPickNames();
+  const picks = state.picks.length ? state.picks.join(', ') : t['sum-surprise'];
+
+  box.innerHTML = `
+    <div class="summary-row">
+      <span class="summary-icon">📅</span>
+      <div class="summary-text"><strong>${t['sum-date']}</strong>${prettyDate}</div>
+    </div>
+    <div class="summary-row">
+      <span class="summary-icon">⏰</span>
+      <div class="summary-text"><strong>${t['sum-time']}</strong>${prettyTime}</div>
+    </div>
+    <div class="summary-row">
+      <span class="summary-icon">✨</span>
+      <div class="summary-text"><strong>${t['sum-plans']}</strong>${picks}</div>
+    </div>
+  `;
+}
+
+/* ============================================
+   BACKGROUND MUSIC
+============================================ */
+let musicOn = false, audioCtx = null, musicNodes = [];
+
+function startMusic() {
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const notes = [523, 587, 659, 698, 784, 659, 587, 523, 587, 659, 784, 880];
+  let t = audioCtx.currentTime + 0.1;
+  const loop = () => {
+    notes.forEach((freq, i) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, t + i*0.35);
+      gain.gain.setValueAtTime(0, t + i*0.35);
+      gain.gain.linearRampToValueAtTime(0.08, t + i*0.35 + 0.05);
+      gain.gain.linearRampToValueAtTime(0, t + i*0.35 + 0.3);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(t + i*0.35); osc.stop(t + i*0.35 + 0.35);
+      musicNodes.push(osc);
+    });
+    t += notes.length * 0.35;
+  };
+  loop();
+  const id = setInterval(loop, notes.length * 350);
+  musicNodes._interval = id;
+}
+
+function stopMusic() {
+  if (audioCtx) {
+    clearInterval(musicNodes._interval);
+    musicNodes.forEach(n => { try { n.stop(); } catch(e){} });
+    musicNodes = []; audioCtx.close(); audioCtx = null;
+  }
+}
+
+document.getElementById('musicBtn').addEventListener('click', () => {
+  musicOn = !musicOn;
+  document.getElementById('musicBtn').textContent = musicOn ? '🔇' : '🎵';
+  musicOn ? startMusic() : stopMusic();
+});
+
+/* ============================================
+   INIT
+============================================ */
+(function init() {
+  // Restore language preference
+  try {
+    const savedLang = localStorage.getItem('dateInviteLang');
+    if (savedLang === 'gr') setLang('gr');
+    else setLang('en');
+  } catch(e) { setLang('en'); }
+
+  // Build option cards for the first time
+  rebuildOptionCards();
+
+  // Restore saved state
+  try {
+    const saved = JSON.parse(localStorage.getItem('dateInvite'));
+    if (saved) {
+      if (saved.date) { state.date = saved.date; dateInput.value = saved.date; }
+      if (saved.time) { state.time = saved.time; timeInput.value = saved.time; }
+      if (saved.pickedEmojis) state.pickedEmojis = saved.pickedEmojis;
+      checkDatetime();
+      // Re-select cards by emoji
+      rebuildOptionCards();
+    }
+  } catch(e) {}
+})();
+</script>
+</body>
+</html>
